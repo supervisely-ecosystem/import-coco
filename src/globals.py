@@ -36,8 +36,3 @@ annotations_links = {
          "trainval2014": "http://images.cocodataset.org/annotations/annotations_trainval2014.zip",
          "trainval2017": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
 }
-
-# if len(custom_ds) != 0:
-#     original_coco = True
-# else:
-#     original_coco = False

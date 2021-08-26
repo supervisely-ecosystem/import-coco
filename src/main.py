@@ -4,6 +4,7 @@ import coco_downloader
 import supervisely_lib as sly
 import coco_converter
 
+import upload_images_project
 
 def upload_project():
     pass
@@ -29,7 +30,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             coco_converter.move_to_sly_dataset(dataset, sly_dataset_dir, coco_image, ann)
             ds_progress.iter_done_report()
 
-    project = api.project.upl
+    upload_images_project.start(api, g.sly_base_dir, g.workspace_id, "coco_val_2017")
 
     g.my_app.stop()
 
@@ -41,6 +42,6 @@ def main():
     })
     g.my_app.run(initial_events=[{"command": "import_coco"}])
 
+
 if __name__ == '__main__':
     sly.main_wrapper("main", main)
-

@@ -8,9 +8,6 @@ import pycocotools.mask as mask_util
 from coco_utils import COCOUtils
 from supervisely_lib.io.fs import mkdir
 
-# create meta from categories
-# convert coco anns to sly anns
-
 
 def create_sly_meta_from_coco_categories(coco_categories):
     meta = sly.ProjectMeta()
@@ -63,7 +60,7 @@ def convert_rle_mask_to_polygon(coco_ann):
 def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_annotations, image_size):
     name_cat_id_map = coco_category_to_class_name(coco_categories)
     labels = []
-    for coco_ann in coco_annotations: #16
+    for coco_ann in coco_annotations:
         obj_class = meta.get_obj_class(name_cat_id_map[coco_ann["category_id"]])
         if type(coco_ann["segmentation"]) is dict:
             polygons = convert_rle_mask_to_polygon(coco_ann)
