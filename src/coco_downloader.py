@@ -58,6 +58,7 @@ def download_original_coco_dataset(datasets, app_logger):
         download_coco_images(dataset, archive_path, dataset_dir, app_logger)
         if not dataset.startswith("test"):
             download_coco_annotations(dataset, archive_path, dataset_dir, app_logger)
+        return datasets
 
 
 def download_file_from_supervisely(path_to_remote_dataset, archive_path, archive_name, progress_message, app_logger):
@@ -79,3 +80,5 @@ def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
     download_file_from_supervisely(path_to_remote_dataset, archive_path, archive_name, f'Download "{archive_name}"', app_logger)
     shutil.unpack_archive(archive_path, g.coco_base_dir)
     silent_remove(archive_path)
+    datasets = [dataset for dataset in os.listdir(g.coco_base_dir)]
+    return datasets
