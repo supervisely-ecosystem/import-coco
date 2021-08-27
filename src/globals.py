@@ -1,10 +1,17 @@
 import os
-import json
+import ast
 import supervisely_lib as sly
 from supervisely_lib.io.fs import mkdir
 
 my_app = sly.AppService()
 api: sly.Api = my_app.public_api
+
+
+def str_to_list(data):
+    data = ast.literal_eval(data)
+    data = [n.strip() for n in data]
+    return data
+
 
 task_id = os.environ["TASK_ID"]
 team_id = int(os.environ['context.teamId'])
@@ -20,10 +27,12 @@ mkdir(coco_base_dir)
 sly_base_dir = os.path.join(storage_dir, "supervisely")
 mkdir(sly_base_dir)
 
-original_ds = os.environ['modal.state.originalData']
-original_ds = json.loads(original_ds)
-
-custom_ds = os.environ['modal.state.customData']
+if coco_mode == "original":
+    is_original = True
+    original_ds = str_to_list(os.environ['modal.state.originalDataset'])
+else:
+    is_original = False
+    custom_ds = os.environ['modal.state.customDataset']
 
 images_links = {
          "train2014": "http://images.cocodataset.org/zips/train2014.zip",
@@ -37,9 +46,4 @@ images_links = {
 annotations_links = {
          "trainval2014": "http://images.cocodataset.org/annotations/annotations_trainval2014.zip",
          "trainval2017": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
-}
-
-testing_image_info = {
-         "test2014": "http://images.cocodataset.org/annotations/image_info_test2014.zip",
-         "test2017": "http://images.cocodataset.org/annotations/image_info_test2017.zip",
 }

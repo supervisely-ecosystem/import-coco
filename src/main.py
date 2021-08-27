@@ -1,4 +1,3 @@
-import os
 import globals as g
 import coco_downloader
 import coco_converter
@@ -9,7 +8,7 @@ import supervisely_lib as sly
 @g.my_app.callback("import_coco")
 @sly.timeit
 def import_coco(api: sly.Api, task_id, context, state, app_logger):
-    if g.coco_mode == "original":
+    if g.is_original:
         coco_datasets = coco_downloader.download_original_coco_dataset(g.original_ds, app_logger)
         project_name = "Original COCO"
     else:
