@@ -66,7 +66,7 @@ COCO_BASE_DIRECTORY
 - Your can download selected datasets from [COCO](https://cocodataset.org/#download).  
 - Use your custom dataset in COCO format by path to your archive in `Team Files`.
 
-<img src="https://i.imgur.com/ikpsng9.png" width="600px"/>
+<img src="https://i.imgur.com/ikpsng9.png"/>
 
 4. After pressing the `Run` button you will be redirected to the `Tasks` page.
 
