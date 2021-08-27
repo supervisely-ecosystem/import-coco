@@ -1,4 +1,3 @@
-import os
 import globals as g
 import coco_downloader
 import coco_converter

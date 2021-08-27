@@ -3,13 +3,11 @@ import json
 import shutil
 import numpy as np
 import globals as g
-import supervisely_lib as sly
-import pycocotools.mask as mask_util
-from coco_utils import COCOUtils
-from supervisely_lib.io.fs import mkdir
-
 from PIL import Image
-
+import supervisely_lib as sly
+from coco_utils import COCOUtils
+import pycocotools.mask as mask_util
+from supervisely_lib.io.fs import mkdir
 
 
 def create_sly_meta_from_coco_categories(coco_categories):

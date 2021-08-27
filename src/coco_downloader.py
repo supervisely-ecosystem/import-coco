@@ -3,7 +3,7 @@ import shutil
 import requests
 import dl_progress
 import globals as g
-from supervisely_lib.io.fs import download, file_exists, silent_remove, mkdir, get_file_name
+from supervisely_lib.io.fs import download, file_exists, silent_remove, mkdir
 
 
 def download_file_from_link(link, file_name, archive_path, progress_message, app_logger):

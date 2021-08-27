@@ -20,10 +20,10 @@ mkdir(coco_base_dir)
 sly_base_dir = os.path.join(storage_dir, "supervisely")
 mkdir(sly_base_dir)
 
-original_ds = os.environ['modal.state.originalData']
+original_ds = os.environ['modal.state.originalDataset']
 original_ds = json.loads(original_ds)
 
-custom_ds = os.environ['modal.state.customData']
+custom_ds = os.environ['modal.state.customDataset']
 
 images_links = {
          "train2014": "http://images.cocodataset.org/zips/train2014.zip",
@@ -37,9 +37,4 @@ images_links = {
 annotations_links = {
          "trainval2014": "http://images.cocodataset.org/annotations/annotations_trainval2014.zip",
          "trainval2017": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
-}
-
-testing_image_info = {
-         "test2014": "http://images.cocodataset.org/annotations/image_info_test2014.zip",
-         "test2017": "http://images.cocodataset.org/annotations/image_info_test2017.zip",
 }
