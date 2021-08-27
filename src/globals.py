@@ -6,6 +6,13 @@ from supervisely_lib.io.fs import mkdir
 my_app = sly.AppService()
 api: sly.Api = my_app.public_api
 
+
+def str_to_list(data):
+    data = ast.literal_eval(data)
+    data = [n.strip() for n in data]
+    return data
+
+
 task_id = os.environ["TASK_ID"]
 team_id = int(os.environ['context.teamId'])
 workspace_id = int(os.environ['context.workspaceId'])
@@ -20,15 +27,12 @@ mkdir(coco_base_dir)
 sly_base_dir = os.path.join(storage_dir, "supervisely")
 mkdir(sly_base_dir)
 
-
-def str_to_list(data):
-    data = ast.literal_eval(data)
-    data = [n.strip() for n in data]
-    return data
-
-original_ds = str_to_list(os.environ['modal.state.originalDataset'])
-
-custom_ds = os.environ['modal.state.customDataset']
+if coco_mode == "original":
+    is_original = True
+    original_ds = str_to_list(os.environ['modal.state.originalDataset'])
+else:
+    is_original = False
+    custom_ds = os.environ['modal.state.customDataset']
 
 images_links = {
          "train2014": "http://images.cocodataset.org/zips/train2014.zip",
