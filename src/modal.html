@@ -1,7 +1,3 @@
-<pre>
-  {{ JSON.stringify(state, undefined, 2) }}
-</pre>
-
 <sly-field>
     <el-tabs type="border-card" class="el-tabs-cards" v-model="state.cocoDataset">
         <el-tab-pane name="coco">
@@ -29,6 +25,10 @@
                         <el-checkbox label="test2014"></el-checkbox>
                     </div>
                 </el-checkbox-group>
+
+                <pre>
+                    {{ JSON.stringify(state, undefined, 2) }}
+                </pre>
 
             </sly-field>
         </el-tab-pane>
