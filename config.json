@@ -8,7 +8,7 @@
   "docker_image": "supervisely/base-py-sdk:6.1.95",
   "main_script": "src/main.py",
   "modal_template": "src/modal.html",
-  "modal_template_state": {"currDatasets": ["train2017"]},
+  "modal_template_state": {"originalData": ["train2017"], "cocoDataset": "original"},
   "task_location": "workspace_tasks",
   "isolate": true,
   "headless": true,
