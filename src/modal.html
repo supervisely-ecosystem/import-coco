@@ -5,6 +5,7 @@
                 COCO datasets
             </el-radio>
             <sly-field>
+                {{state.originalDataset}}
                 <el-checkbox-group v-model="state.originalDataset">
                     <div class="mt5">
                         <el-checkbox label="train2017"></el-checkbox>
@@ -25,10 +26,6 @@
                         <el-checkbox label="test2014"></el-checkbox>
                     </div>
                 </el-checkbox-group>
-
-                <pre>
-                    {{ JSON.stringify(state, undefined, 2) }}
-                </pre>
 
             </sly-field>
         </el-tab-pane>
