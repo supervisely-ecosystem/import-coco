@@ -1,17 +1,10 @@
 <sly-field>
-
-            <pre>
-                {{ JSON.stringify(state, undefined, 2) }}
-            </pre>
-
-
     <el-tabs type="border-card" class="el-tabs-cards" v-model="state.cocoDataset">
         <el-tab-pane name="original">
             <el-radio slot="label" v-model="state.cocoDataset" label="original">
                 COCO datasets
             </el-radio>
             <sly-field>
-
                 <el-checkbox-group v-model="state.originalDataset">
                     <div class="mt5">
                         <el-checkbox label="train2017"></el-checkbox>
@@ -32,10 +25,7 @@
                         <el-checkbox label="test2014"></el-checkbox>
                     </div>
                 </el-checkbox-group>
-
             </sly-field>
-
-
         </el-tab-pane>
         <el-tab-pane name="custom">
             <el-radio slot="label" v-model="state.cocoDataset" label="custom">
