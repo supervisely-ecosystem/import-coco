@@ -10,6 +10,8 @@ task_id = os.environ["TASK_ID"]
 team_id = int(os.environ['context.teamId'])
 workspace_id = int(os.environ['context.workspaceId'])
 
+coco_mode = os.environ["modal.state.cocoDataset"]
+meta = None
 
 storage_dir = os.path.join(my_app.data_dir, "storage_dir")
 mkdir(storage_dir, True)
@@ -35,4 +37,9 @@ images_links = {
 annotations_links = {
          "trainval2014": "http://images.cocodataset.org/annotations/annotations_trainval2014.zip",
          "trainval2017": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
+}
+
+testing_image_info = {
+         "test2014": "http://images.cocodataset.org/annotations/image_info_test2014.zip",
+         "test2017": "http://images.cocodataset.org/annotations/image_info_test2017.zip",
 }

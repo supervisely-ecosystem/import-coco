@@ -8,6 +8,9 @@ import pycocotools.mask as mask_util
 from coco_utils import COCOUtils
 from supervisely_lib.io.fs import mkdir
 
+from PIL import Image
+
+
 
 def create_sly_meta_from_coco_categories(coco_categories):
     meta = sly.ProjectMeta()
@@ -17,10 +20,25 @@ def create_sly_meta_from_coco_categories(coco_categories):
         colors.append(new_color)
         obj_class = sly.ObjClass(category["name"], sly.Polygon, new_color)
         meta = meta.add_obj_class(obj_class)
-    path_to_meta = os.path.join(g.sly_base_dir, "meta.json")
-    meta_json = meta.to_json()
-    sly.json.dump_json_file(meta_json, path_to_meta)
     return meta
+
+
+def get_sly_meta_from_coco(coco_dataset, dataset_name):
+    path_to_meta = os.path.join(g.sly_base_dir, "meta.json")
+    if not os.path.exists(os.path.join(g.sly_base_dir, "meta.json")):
+        g.meta = create_sly_meta_from_coco_categories(coco_dataset.categories)
+        meta_json = g.meta.to_json()
+        sly.json.dump_json_file(meta_json, path_to_meta)
+        return g.meta
+    else:
+        if dataset_name in ["train2014", "val2014", "train2017", "val2017"]:
+            return g.meta
+        else:
+            meta = create_sly_meta_from_coco_categories(coco_dataset.categories)
+            g.meta = g.meta.merge(meta)
+            meta_json = g.meta.to_json()
+            sly.json.dump_json_file(meta_json, path_to_meta)
+            return g.meta
 
 
 def get_coco_annotations_for_current_image(coco_image, coco_anns):
@@ -78,15 +96,15 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_annotations,
 
 def create_sly_dataset_dir(dataset_name):
     dataset_dir = os.path.join(g.sly_base_dir, dataset_name)
-    img_dir = os.path.join(dataset_dir, "img")
-    ann_dir = os.path.join(dataset_dir, "ann")
     mkdir(dataset_dir)
+    img_dir = os.path.join(dataset_dir, "img")
     mkdir(img_dir)
+    ann_dir = os.path.join(dataset_dir, "ann")
     mkdir(ann_dir)
     return dataset_dir
 
 
-def move_to_sly_dataset(dataset, sly_dataset_dir, coco_image, ann):
+def move_trainvalds_to_sly_dataset(dataset, sly_dataset_dir, coco_image, ann):
     img_dir = os.path.join(sly_dataset_dir, "img")
     ann_dir = os.path.join(sly_dataset_dir, "ann")
     image_name = coco_image['file_name']
@@ -97,10 +115,39 @@ def move_to_sly_dataset(dataset, sly_dataset_dir, coco_image, ann):
     shutil.move(coco_img_path, sly_img_path)
 
 
+def move_testds_to_sly_dataset(dataset, coco_base_dir, sly_dataset_dir):
+    src_img_dir = os.path.join(coco_base_dir, dataset, "images")
+    dst_img_dir = os.path.join(sly_dataset_dir, "img")
+    ann_dir = os.path.join(sly_dataset_dir, "ann")
+
+    ds_progress = sly.Progress(f"Converting dataset: {dataset}", len(os.listdir(src_img_dir)), min_report_percent=1)
+    for image in os.listdir(src_img_dir):
+        src_image_path = os.path.join(src_img_dir, image)
+        dst_image_path = os.path.join(dst_img_dir, image)
+        shutil.move(src_image_path, dst_image_path)
+        im = Image.open(dst_image_path)
+        width, height = im.size
+        img_size = [height, width]
+        ann = sly.Annotation(img_size)
+        ann_json = ann.to_json()
+        sly.json.dump_json_file(ann_json, os.path.join(ann_dir, f"{image}.json"))
+        ds_progress.iter_done_report()
+
+
+def check_dataset_for_annotation(dataset):
+    ann_dir = os.path.join(g.coco_base_dir, dataset, "annotations")
+    if os.path.exists(ann_dir) and len(os.listdir(ann_dir)) != 0:
+        return True
+    else:
+        return False
+
+
 def read_coco_dataset(dataset_name):
     coco_ann_dir = os.path.join(g.coco_base_dir, dataset_name, "annotations")
     path_to_coco_ann = os.path.join(coco_ann_dir, os.listdir(coco_ann_dir)[0])
     coco_ann_json = open(path_to_coco_ann)
     coco_ann = json.load(coco_ann_json)
+    if "annotations" not in coco_ann.keys():
+        return None
     coco_ann = COCOUtils(coco_ann)
     return coco_ann

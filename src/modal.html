@@ -1,0 +1,40 @@
+<sly-field>
+    <el-tabs type="border-card" class="el-tabs-cards" v-model="state.cocoDataset">
+        <el-tab-pane name="coco">
+            <el-radio slot="label" v-model="state.cocoDataset" label="original">
+                COCO datasets
+            </el-radio>
+            <sly-field>
+                <el-checkbox-group v-model="state.originalData">
+                    <div class="mt5">
+                        <el-checkbox label="train2017"></el-checkbox>
+                    </div>
+                    <div class="mt5">
+                        <el-checkbox label="val2017"></el-checkbox>
+                    </div>
+                    <div class="mt5">
+                        <el-checkbox label="test2017"></el-checkbox>
+                    </div>
+                    <div class="mt5">
+                        <el-checkbox label="train2014"></el-checkbox>
+                    </div>
+                    <div class="mt5">
+                        <el-checkbox label="val2014"></el-checkbox>
+                    </div>
+                    <div class="mt5">
+                        <el-checkbox label="test2014"></el-checkbox>
+                    </div>
+                </el-checkbox-group>
+
+            </sly-field>
+        </el-tab-pane>
+        <el-tab-pane name="custom">
+            <el-radio slot="label" v-model="state.cocoDataset" label="custom">
+                Custom dataset(s)
+            </el-radio>
+            <sly-field title="Path to tar file" description="Copy path in Team Files">
+                <el-input v-model="state.customData" placeholder="Path to archive in Team Files"></el-input>
+            </sly-field>
+        </el-tab-pane>
+    </el-tabs>
+</sly-field>

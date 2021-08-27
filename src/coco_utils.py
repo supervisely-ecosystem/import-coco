@@ -1,9 +1,4 @@
-import os
 import json
-import numpy as np
-import globals as g
-import supervisely_lib as sly
-import pycocotools.mask as mask_util
 
 
 class COCOUtils:

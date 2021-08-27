@@ -34,18 +34,16 @@ def download_coco_annotations(dataset, archive_path, save_path, app_logger):
             return
         link = g.annotations_links["trainval2014"]
         file_name = "trainval2014.zip"
-
     elif dataset == "train2017" or dataset == "val2017":
         if os.path.exists(ann_dir):
             return
         link = g.annotations_links["trainval2017"]
         file_name = "trainval2017.zip"
-
     download_file_from_link(link, file_name, archive_path, f"Download {file_name}", app_logger)
     shutil.unpack_archive(archive_path, save_path, format="zip")
     for file in os.listdir(ann_dir):
         if not file == f"instances_{dataset}.json":
-           silent_remove(os.path.join(ann_dir, file))
+            silent_remove(os.path.join(ann_dir, file))
     silent_remove(archive_path)
 
 
@@ -53,12 +51,11 @@ def download_original_coco_dataset(datasets, app_logger):
     for dataset in datasets:
         dataset_dir = os.path.join(g.coco_base_dir, dataset)
         mkdir(dataset_dir)
-
         archive_path = dataset_dir + ".zip"
         download_coco_images(dataset, archive_path, dataset_dir, app_logger)
         if not dataset.startswith("test"):
             download_coco_annotations(dataset, archive_path, dataset_dir, app_logger)
-        return datasets
+    return datasets
 
 
 def download_file_from_supervisely(path_to_remote_dataset, archive_path, archive_name, progress_message, app_logger):
