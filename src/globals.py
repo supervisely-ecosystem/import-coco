@@ -1,5 +1,5 @@
 import os
-import json
+import ast
 import supervisely_lib as sly
 from supervisely_lib.io.fs import mkdir
 
@@ -20,8 +20,13 @@ mkdir(coco_base_dir)
 sly_base_dir = os.path.join(storage_dir, "supervisely")
 mkdir(sly_base_dir)
 
-original_ds = os.environ['modal.state.originalDataset']
-original_ds = json.loads(original_ds)
+
+def str_to_list(data):
+    data = ast.literal_eval(data)
+    data = [n.strip() for n in data]
+    return data
+
+original_ds = str_to_list(os.environ['modal.state.originalDataset'])
 
 custom_ds = os.environ['modal.state.customDataset']
 
