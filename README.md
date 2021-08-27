@@ -24,7 +24,7 @@
 App converts selected [COCO format](https://cocodataset.org/#home) datasets to [Supervisely format](https://docs.supervise.ly/data-organization/00_ann_format_navi) project
 
 Application key points:  
-- Supports only **instance.json** from **COCO** format
+- Supports only **instances.json** from **COCO** format
 - All information about dataset, licenses and images from COCO annotation file **will be lost**
 - Backward compatible with [Export to COCO](https://github.com/supervisely-ecosystem/export-to-coco)
 
