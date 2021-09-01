@@ -3,3 +3,4 @@ venv
 debug
 .idea
 /src/TEST_DATASET
+__pycache__

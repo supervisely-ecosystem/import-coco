@@ -7,7 +7,7 @@ from PIL import Image
 import supervisely_lib as sly
 from coco_utils import COCOUtils
 import pycocotools.mask as mask_util
-from supervisely_lib.io.fs import mkdir
+from supervisely_lib.io.fs import mkdir, file_exists
 
 
 def create_sly_meta_from_coco_categories(coco_categories):
@@ -110,7 +110,8 @@ def move_trainvalds_to_sly_dataset(dataset, sly_dataset_dir, coco_image, ann):
     sly.json.dump_json_file(ann_json, os.path.join(ann_dir, f"{image_name}.json"))
     coco_img_path = os.path.join(g.coco_base_dir, dataset, "images", image_name)
     sly_img_path = os.path.join(img_dir, image_name)
-    shutil.move(coco_img_path, sly_img_path)
+    if file_exists(os.path.join(coco_img_path)):
+        shutil.move(coco_img_path, sly_img_path)
 
 
 def move_testds_to_sly_dataset(dataset, coco_base_dir, sly_dataset_dir):

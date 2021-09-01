@@ -3,6 +3,8 @@ import coco_downloader
 import coco_converter
 import upload_images_project
 import supervisely_lib as sly
+from supervisely_lib.io.fs import dir_exists
+import os
 
 
 @g.my_app.callback("import_coco")
@@ -16,6 +18,11 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         project_name = "Custom COCO"
 
     for dataset in coco_datasets:
+        if not dir_exists(os.path.join(g.coco_base_dir, dataset, "images")):
+            app_logger.warn(
+                "Incorrect input data. Folder with images must have name 'images'. See 'READMY' for more information.")
+            g.my_app.stop()
+
         has_ann = coco_converter.check_dataset_for_annotation(dataset)
         if has_ann:
             coco_dataset = coco_converter.read_coco_dataset(dataset)
