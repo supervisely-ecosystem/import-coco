@@ -27,6 +27,8 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         if has_ann:
             coco_dataset = coco_converter.read_coco_dataset(dataset)
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset)
+            g.img_dir = os.path.join(sly_dataset_dir, "img")
+            g.ann_dir = os.path.join(sly_dataset_dir, "ann")
             meta = coco_converter.get_sly_meta_from_coco(coco_dataset, dataset)
             ds_progress = sly.Progress(f"Converting dataset: {dataset}", len(coco_dataset.images), min_report_percent=1)
             for batch in sly.batched(coco_dataset.images, batch_size=10):
@@ -35,11 +37,14 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                     img_size = (h, w)
                     coco_annotations = coco_converter.get_coco_annotations_for_current_image(coco_image, coco_dataset.annotations)
                     ann = coco_converter.create_sly_ann_from_coco_annotation(meta, coco_dataset.categories, coco_annotations, img_size)
-                    coco_converter.move_trainvalds_to_sly_dataset(dataset, sly_dataset_dir, coco_image, ann)
+                    coco_converter.move_trainvalds_to_sly_dataset(dataset, coco_image, ann)
                     ds_progress.iter_done_report()
         else:
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset)
-            coco_converter.move_testds_to_sly_dataset(dataset, g.coco_base_dir, sly_dataset_dir)
+            g.src_img_dir = os.path.join(g.coco_base_dir, dataset, "images")
+            g.dst_img_dir = os.path.join(sly_dataset_dir, "img")
+            g.ann_dir = os.path.join(sly_dataset_dir, "ann")
+            coco_converter.move_testds_to_sly_dataset(dataset)
 
     upload_images_project.start(api, g.sly_base_dir, g.workspace_id, project_name)
     g.my_app.stop()

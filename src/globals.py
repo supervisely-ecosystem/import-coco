@@ -26,6 +26,10 @@ coco_base_dir = os.path.join(storage_dir, "coco_base_dir")
 mkdir(coco_base_dir)
 sly_base_dir = os.path.join(storage_dir, "supervisely")
 mkdir(sly_base_dir)
+img_dir = None
+ann_dir = None
+src_img_dir = None
+dst_img_dir = None
 
 if coco_mode == "original":
     is_original = True

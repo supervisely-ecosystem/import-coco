@@ -102,34 +102,29 @@ def create_sly_dataset_dir(dataset_name):
     return dataset_dir
 
 
-def move_trainvalds_to_sly_dataset(dataset, sly_dataset_dir, coco_image, ann):
-    img_dir = os.path.join(sly_dataset_dir, "img")
-    ann_dir = os.path.join(sly_dataset_dir, "ann")
+def move_trainvalds_to_sly_dataset(dataset, coco_image, ann):
     image_name = coco_image['file_name']
     ann_json = ann.to_json()
-    sly.json.dump_json_file(ann_json, os.path.join(ann_dir, f"{image_name}.json"))
+    sly.json.dump_json_file(ann_json, os.path.join(g.ann_dir, f"{image_name}.json"))
     coco_img_path = os.path.join(g.coco_base_dir, dataset, "images", image_name)
-    sly_img_path = os.path.join(img_dir, image_name)
+    sly_img_path = os.path.join(g.img_dir, image_name)
     if file_exists(os.path.join(coco_img_path)):
         shutil.move(coco_img_path, sly_img_path)
 
 
-def move_testds_to_sly_dataset(dataset, coco_base_dir, sly_dataset_dir):
-    src_img_dir = os.path.join(coco_base_dir, dataset, "images")
-    dst_img_dir = os.path.join(sly_dataset_dir, "img")
-    ann_dir = os.path.join(sly_dataset_dir, "ann")
+def move_testds_to_sly_dataset(dataset):
 
-    ds_progress = sly.Progress(f"Converting dataset: {dataset}", len(os.listdir(src_img_dir)), min_report_percent=1)
-    for image in os.listdir(src_img_dir):
-        src_image_path = os.path.join(src_img_dir, image)
-        dst_image_path = os.path.join(dst_img_dir, image)
+    ds_progress = sly.Progress(f"Converting dataset: {dataset}", len(os.listdir(g.src_img_dir)), min_report_percent=1)
+    for image in os.listdir(g.src_img_dir):
+        src_image_path = os.path.join(g.src_img_dir, image)
+        dst_image_path = os.path.join(g.dst_img_dir, image)
         shutil.move(src_image_path, dst_image_path)
         im = Image.open(dst_image_path)
         width, height = im.size
         img_size = [height, width]
         ann = sly.Annotation(img_size)
         ann_json = ann.to_json()
-        sly.json.dump_json_file(ann_json, os.path.join(ann_dir, f"{image}.json"))
+        sly.json.dump_json_file(ann_json, os.path.join(g.ann_dir, f"{image}.json"))
         ds_progress.iter_done_report()
 
 
