@@ -2,7 +2,8 @@
   "name": "Import COCO",
   "type": "app",
   "categories": [
-    "Import"
+    "import",
+    "images"
   ],
   "description": "Converts COCO format to Supervisely",
   "docker_image": "supervisely/base-py-sdk:6.1.95",
