@@ -1,13 +1,15 @@
-import os
 import json
+import os
 import shutil
+
 import numpy as np
-import globals as g
-from PIL import Image
-import supervisely_lib as sly
-from coco_utils import COCOUtils
 import pycocotools.mask as mask_util
-from supervisely_lib.io.fs import mkdir, file_exists
+import supervisely as sly
+from PIL import Image
+from supervisely.io.fs import file_exists, mkdir
+
+import globals as g
+from coco_utils import COCOUtils
 
 
 def create_sly_meta_from_coco_categories(coco_categories):
@@ -27,53 +29,47 @@ def get_sly_meta_from_coco(coco_dataset, dataset_name):
         g.meta = create_sly_meta_from_coco_categories(coco_dataset.categories)
         meta_json = g.meta.to_json()
         sly.json.dump_json_file(meta_json, path_to_meta)
-        return g.meta
-    else:
-        if dataset_name in ["train2014", "val2014", "train2017", "val2017"]:
-            return g.meta
-        else:
-            meta = create_sly_meta_from_coco_categories(coco_dataset.categories)
-            g.meta = g.meta.merge(meta)
-            meta_json = g.meta.to_json()
-            sly.json.dump_json_file(meta_json, path_to_meta)
-            return g.meta
+    elif dataset_name not in ["train2014", "val2014", "train2017", "val2017"]:
+        meta = create_sly_meta_from_coco_categories(coco_dataset.categories)
+        g.meta = g.meta.merge(meta)
+        meta_json = g.meta.to_json()
+        sly.json.dump_json_file(meta_json, path_to_meta)
+    return g.meta
 
 
 def get_coco_annotations_for_current_image(coco_image, coco_anns):
     image_id = coco_image["id"]
-    image_annotations = []
-    for coco_ann in coco_anns:
-        if image_id == coco_ann["image_id"]:
-            image_annotations.append(coco_ann)
-    return image_annotations
+    return [coco_ann for coco_ann in coco_anns if image_id == coco_ann["image_id"]]
 
 
 def coco_category_to_class_name(coco_categories):
-    name_cat_id_map = {}
-    for category in coco_categories:
-        name_cat_id_map[category["id"]] = category["name"]
-    return name_cat_id_map
+    return {category["id"]: category["name"] for category in coco_categories}
 
 
 def convert_polygon_vertices(coco_ann):
     for polygons in coco_ann["segmentation"]:
         exterior = polygons
-        exterior = [exterior[i * 2:(i + 1) * 2] for i in range((len(exterior) + 2 - 1) // 2)]
+        exterior = [
+            exterior[i * 2 : (i + 1) * 2] for i in range((len(exterior) + 2 - 1) // 2)
+        ]
         exterior = [sly.PointLocation(height, width) for width, height in exterior]
-        figure = sly.Polygon(exterior, [])
-        return figure
+        return sly.Polygon(exterior, [])
 
 
 def convert_rle_mask_to_polygon(coco_ann):
-    rle_obj = mask_util.frPyObjects(coco_ann["segmentation"], coco_ann["segmentation"]["size"][0],
-                                    coco_ann["segmentation"]["size"][1])
+    rle_obj = mask_util.frPyObjects(
+        coco_ann["segmentation"],
+        coco_ann["segmentation"]["size"][0],
+        coco_ann["segmentation"]["size"][1],
+    )
     mask = mask_util.decode(rle_obj)
     mask = np.array(mask, dtype=bool)
-    polygons = sly.Bitmap(mask).to_contours()
-    return polygons
+    return sly.Bitmap(mask).to_contours()
 
 
-def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_annotations, image_size):
+def create_sly_ann_from_coco_annotation(
+    meta, coco_categories, coco_annotations, image_size
+):
     name_cat_id_map = coco_category_to_class_name(coco_categories)
     labels = []
     for coco_ann in coco_annotations:
@@ -88,8 +84,7 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_annotations,
             figure = convert_polygon_vertices(coco_ann)
             label = sly.Label(figure, obj_class)
             labels.append(label)
-    ann = sly.Annotation(image_size, labels)
-    return ann
+    return sly.Annotation(image_size, labels)
 
 
 def create_sly_dataset_dir(dataset_name):
@@ -103,7 +98,7 @@ def create_sly_dataset_dir(dataset_name):
 
 
 def move_trainvalds_to_sly_dataset(dataset, coco_image, ann):
-    image_name = coco_image['file_name']
+    image_name = coco_image["file_name"]
     ann_json = ann.to_json()
     sly.json.dump_json_file(ann_json, os.path.join(g.ann_dir, f"{image_name}.json"))
     coco_img_path = os.path.join(g.coco_base_dir, dataset, "images", image_name)
@@ -113,8 +108,11 @@ def move_trainvalds_to_sly_dataset(dataset, coco_image, ann):
 
 
 def move_testds_to_sly_dataset(dataset):
-
-    ds_progress = sly.Progress(f"Converting dataset: {dataset}", len(os.listdir(g.src_img_dir)), min_report_percent=1)
+    ds_progress = sly.Progress(
+        f"Converting dataset: {dataset}",
+        len(os.listdir(g.src_img_dir)),
+        min_report_percent=1,
+    )
     for image in os.listdir(g.src_img_dir):
         src_image_path = os.path.join(g.src_img_dir, image)
         dst_image_path = os.path.join(g.dst_img_dir, image)
@@ -130,10 +128,7 @@ def move_testds_to_sly_dataset(dataset):
 
 def check_dataset_for_annotation(dataset):
     ann_dir = os.path.join(g.coco_base_dir, dataset, "annotations")
-    if os.path.exists(ann_dir) and len(os.listdir(ann_dir)) != 0:
-        return True
-    else:
-        return False
+    return bool(os.path.exists(ann_dir) and len(os.listdir(ann_dir)) != 0)
 
 
 def read_coco_dataset(dataset_name):

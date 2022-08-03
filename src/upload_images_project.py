@@ -1,7 +1,9 @@
 import os
+
+import supervisely as sly
+from supervisely.project.project import read_single_project
+
 import globals as g
-import supervisely_lib as sly
-from supervisely_lib.project.project import read_single_project
 
 
 def check_project_for_meta(project_dir):
@@ -14,17 +16,23 @@ def check_project_for_meta(project_dir):
 
 def start(api, project_dir, workspace_id, project_name):
     check_project_for_meta(project_dir)
-    project = g.api.project.create(workspace_id,
-                                   project_name,
-                                   type=sly.ProjectType.IMAGES,
-                                   change_name_if_conflict=True)
+    project = g.api.project.create(
+        workspace_id,
+        project_name,
+        type=sly.ProjectType.IMAGES,
+        change_name_if_conflict=True,
+    )
     project_fs = read_single_project(project_dir)
     g.api.project.update_meta(project.id, project_fs.meta.to_json())
-    sly.logger.info("Project {!r} [id={!r}] has been created".format(project.name, project.id))
+    sly.logger.info(
+        "Project {!r} [id={!r}] has been created".format(project.name, project.id)
+    )
     for dataset_fs in project_fs:
         dataset = api.dataset.create(project.id, dataset_fs.name)
         names, img_paths, ann_paths = [], [], []
-        ds_progress = sly.Progress(f"Upload dataset: {dataset.name}", len(dataset_fs), min_report_percent=1)
+        ds_progress = sly.Progress(
+            f"Upload dataset: {dataset.name}", len(dataset_fs), min_report_percent=1
+        )
         for item_name in dataset_fs:
             img_path, ann_path = dataset_fs.get_item_paths(item_name)
             names.append(item_name)

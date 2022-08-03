@@ -11,14 +11,19 @@ class COCOUtils:
 
     def get_description(self):
         info_json = json.dumps(self.info, indent=0, sort_keys=False)
-        pretty_info = info_json.replace("{", "").replace("\"", "").replace("}", "").replace(",", "").replace("[", "").replace("]", "")
+        pretty_info = (
+            info_json.replace("{", "")
+            .replace('"', "")
+            .replace("}", "")
+            .replace(",", "")
+            .replace("[", "")
+            .replace("]", "")
+        )
         return str(pretty_info)
 
     def get_dataset_info(self):
         ann_info = self.info
         ann_licenses = self.licenses
-        img_licenses = []
-        for license in ann_licenses:
-            img_licenses.append(license)
+        img_licenses = list(ann_licenses)
         ann_info["licenses"] = img_licenses
         return ann_info
