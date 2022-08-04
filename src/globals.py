@@ -26,25 +26,26 @@ def str_to_list(data):
     return data
 
 
-task_id = os.environ["TASK_ID"]
-team_id = int(os.environ["context.teamId"])
-workspace_id = int(os.environ["context.workspaceId"])
+TASK_ID = os.environ["TASK_ID"]
+TEAM_ID = int(os.environ["context.teamId"])
+WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
-coco_mode = os.environ["modal.state.cocoDataset"]
-meta = None
+COCO_MODE = os.environ["modal.state.cocoDataset"]
+META = sly.ProjectMeta()
 
-storage_dir = os.path.join(my_app.data_dir, "storage_dir")
-mkdir(storage_dir, True)
-coco_base_dir = os.path.join(storage_dir, "coco_base_dir")
-mkdir(coco_base_dir)
-sly_base_dir = os.path.join(storage_dir, "supervisely")
-mkdir(sly_base_dir)
+STORAGE_DIR = os.path.join(my_app.data_dir, "storage_dir")
+mkdir(STORAGE_DIR, True)
+COCO_BASE_DIR = os.path.join(STORAGE_DIR, "coco_base_dir")
+mkdir(COCO_BASE_DIR)
+SLY_BASE_DIR = os.path.join(STORAGE_DIR, "supervisely")
+mkdir(SLY_BASE_DIR)
+
 img_dir = None
 ann_dir = None
 src_img_dir = None
 dst_img_dir = None
 
-if coco_mode == "original":
+if COCO_MODE == "original":
     is_original = True
     original_ds = str_to_list(os.environ["modal.state.originalDataset"])
 else:

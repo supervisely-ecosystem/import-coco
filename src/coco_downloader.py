@@ -14,11 +14,11 @@ def download_file_from_link(
     response = requests.head(link, allow_redirects=True)
     sizeb = int(response.headers.get("content-length", 0))
     progress_cb = dl_progress.get_progress_cb(
-        g.api, g.task_id, progress_message, sizeb, is_size=True
+        g.api, g.TASK_ID, progress_message, sizeb, is_size=True
     )
     if not file_exists(archive_path):
         download(link, archive_path, cache=g.my_app.cache, progress=progress_cb)
-        dl_progress.reset_progress(g.api, g.task_id)
+        dl_progress.reset_progress(g.api, g.TASK_ID)
         app_logger.info(f"{file_name} has been successfully downloaded")
 
 
@@ -59,7 +59,7 @@ def download_coco_annotations(dataset, archive_path, save_path, app_logger):
 
 def download_original_coco_dataset(datasets, app_logger):
     for dataset in datasets:
-        dataset_dir = os.path.join(g.coco_base_dir, dataset)
+        dataset_dir = os.path.join(g.COCO_BASE_DIR, dataset)
         mkdir(dataset_dir)
         archive_path = f"{dataset_dir}.zip"
         download_coco_images(dataset, archive_path, dataset_dir, app_logger)
@@ -71,13 +71,13 @@ def download_original_coco_dataset(datasets, app_logger):
 def download_file_from_supervisely(
     path_to_remote_dataset, archive_path, archive_name, progress_message, app_logger
 ):
-    file_size = g.api.file.get_info_by_path(g.team_id, path_to_remote_dataset).sizeb
+    file_size = g.api.file.get_info_by_path(g.TEAM_ID, path_to_remote_dataset).sizeb
     if not file_exists(archive_path):
         progress_upload_cb = dl_progress.get_progress_cb(
-            g.api, g.task_id, progress_message, total=file_size, is_size=True
+            g.api, g.TASK_ID, progress_message, total=file_size, is_size=True
         )
         g.api.file.download(
-            g.team_id,
+            g.TEAM_ID,
             path_to_remote_dataset,
             archive_path,
             progress_cb=progress_upload_cb,
@@ -87,7 +87,7 @@ def download_file_from_supervisely(
 
 def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
     archive_name = os.path.basename(os.path.normpath(path_to_remote_dataset))
-    archive_path = os.path.join(g.coco_base_dir, archive_name)
+    archive_path = os.path.join(g.COCO_BASE_DIR, archive_name)
     download_file_from_supervisely(
         path_to_remote_dataset,
         archive_path,
@@ -95,20 +95,16 @@ def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
         f'Download "{archive_name}"',
         app_logger,
     )
-    shutil.unpack_archive(archive_path, g.coco_base_dir)
+    shutil.unpack_archive(archive_path, g.COCO_BASE_DIR)
     silent_remove(archive_path)
-    return list(os.listdir(g.coco_base_dir))
+    return list(os.listdir(g.COCO_BASE_DIR))
 
 
 def start(app_logger):
     if g.is_original:
-        coco_datasets = download_original_coco_dataset(
-            g.original_ds, app_logger
-        )
+        coco_datasets = download_original_coco_dataset(g.original_ds, app_logger)
         project_name = "Original COCO"
     else:
-        coco_datasets = download_custom_coco_dataset(
-            g.custom_ds, app_logger
-        )
+        coco_datasets = download_custom_coco_dataset(g.custom_ds, app_logger)
         project_name = "Custom COCO"
     return project_name, coco_datasets
