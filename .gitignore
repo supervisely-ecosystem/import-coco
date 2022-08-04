@@ -4,3 +4,5 @@ debug
 .idea
 /src/TEST_DATASET
 __pycache__
+src/debug
+src/demo_script.py

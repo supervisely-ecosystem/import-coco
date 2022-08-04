@@ -21,7 +21,7 @@
 
 # Overview
 
-App converts selected [COCO format](https://cocodataset.org/#home) datasets to [Supervisely format](https://docs.supervise.ly/data-organization/00_ann_format_navi) project
+App converts [COCO format](https://cocodataset.org/#home) datasets to [Supervisely format](https://docs.supervise.ly/data-organization/00_ann_format_navi)
 
 Application key points:  
 - Supports only **instances.json** from **COCO** format
@@ -53,22 +53,22 @@ COCO_BASE_DIRECTORY
 ```
 
 # How to Use
-1. Add [Import COCO](https://ecosystem.supervise.ly/apps/import-coco) to your team from Ecosystem.
+**Step 1.** Add [Import COCO](https://ecosystem.supervise.ly/apps/import-coco) to your team from Ecosystem.
 
 <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/import-coco" src="https://i.imgur.com/d6ilGDr.png" width="350px" style='padding-bottom: 20px'/>
 
-2. Run app from the `Plugins & Apps` chapter:
+**Step 2.** Run app from the `Plugins & Apps` chapter:
 
 <img src="https://i.imgur.com/2luJyn4.png"/>
 
-3. Select import mode:
+**Step 3.** Select import mode:
 
 - Your can download selected datasets from [COCO](https://cocodataset.org/#download).  
 - Use your custom dataset in COCO format by path to your archive in `Team Files`.
 
 <img src="https://i.imgur.com/ikpsng9.png"/>
 
-4. After pressing the `Run` button you will be redirected to the `Tasks` page.
+**Step 4.** After pressing the `Run` button you will be redirected to the `Tasks` page.
 
 # Results
 
