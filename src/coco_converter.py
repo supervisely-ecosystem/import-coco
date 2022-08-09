@@ -17,7 +17,7 @@ def create_sly_meta_from_coco_categories(coco_categories):
             continue
         new_color = sly.color.generate_rgb(colors)
         colors.append(new_color)
-        obj_class = sly.ObjClass(category["name"], sly.Polygon, new_color)
+        obj_class = sly.ObjClass(category["name"], sly.AnyGeometry, new_color)
         g.META = g.META.add_obj_class(obj_class)
     return g.META
 
@@ -84,6 +84,14 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
             figure = convert_polygon_vertices(object)
             label = sly.Label(figure, obj_class)
             labels.append(label)
+
+        bbox = object["bbox"]
+        xmin = bbox[0]
+        ymin = bbox[1]
+        xmax = xmin + bbox[2]
+        ymax = ymin + bbox[3]
+        rectangle = sly.Label(sly.Rectangle(top=ymin, left=xmin, bottom=ymax, right=xmax), obj_class)
+        labels.append(rectangle)
     return sly.Annotation(image_size, labels)
 
 
