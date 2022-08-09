@@ -24,7 +24,9 @@
 App converts [COCO format](https://cocodataset.org/#home) datasets to [Supervisely format](https://docs.supervise.ly/data-organization/00_ann_format_navi)
 
 Application key points:  
-- Supports only **instances.json** from **COCO** format
+- Import full original COCO 2017 & COCO 2014 datasets
+- Supports custom coco datasets
+- Supports only instance segmentation(polygons) and object detection(bounding boxes) from COCO format
 - All information about dataset, licenses and images from COCO annotation file **will be lost**
 - Backward compatible with [Export to COCO](https://github.com/supervisely-ecosystem/export-to-coco)
 
