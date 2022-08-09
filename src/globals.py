@@ -33,6 +33,8 @@ WORKSPACE_ID = int(os.environ["context.workspaceId"])
 COCO_MODE = os.environ["modal.state.cocoDataset"]
 META = sly.ProjectMeta()
 
+OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
+
 STORAGE_DIR = os.path.join(my_app.data_dir, "storage_dir")
 mkdir(STORAGE_DIR, True)
 COCO_BASE_DIR = os.path.join(STORAGE_DIR, "coco_base_dir")

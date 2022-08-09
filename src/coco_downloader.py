@@ -101,10 +101,13 @@ def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
 
 
 def start(app_logger):
+    project_name = g.OUTPUT_PROJECT_NAME
     if g.is_original:
         coco_datasets = download_original_coco_dataset(g.original_ds, app_logger)
-        project_name = "Original COCO"
+        if project_name is None or project_name == "":
+            project_name = "Original COCO"
     else:
         coco_datasets = download_custom_coco_dataset(g.custom_ds, app_logger)
-        project_name = "Custom COCO"
+        if project_name is None or project_name == "":
+            project_name = "Custom COCO"
     return project_name, coco_datasets
