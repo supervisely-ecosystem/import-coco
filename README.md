@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="https://i.imgur.com/KIRxlH0.png"/>
+<img src="https://user-images.githubusercontent.com/48913536/183898471-b65296e2-ec2e-4953-a660-b6a76d935545.png"/>
 
 
 # Import COCO
@@ -61,14 +61,18 @@ COCO_BASE_DIRECTORY
 
 **Step 2.** Run app from the `Plugins & Apps` chapter:
 
-<img src="https://i.imgur.com/2luJyn4.png"/>
+<div align="center" markdown>
+  <img src="https://i.imgur.com/2luJyn4.png"/>
+</div>
 
 **Step 3.** Select import mode:
 
 - Your can download selected datasets from [COCO](https://cocodataset.org/#download).  
 - Use your custom dataset in COCO format by path to your archive in `Team Files`.
 
-<img src="https://i.imgur.com/ikpsng9.png"/>
+<div align="center" markdown>
+  <img src="https://user-images.githubusercontent.com/48913536/183898478-05fc7314-3d28-408e-bbe5-90e6522f0102.png" width="700px"/>
+</div>
 
 **Step 4.** After pressing the `Run` button you will be redirected to the `Tasks` page.
 
@@ -76,4 +80,6 @@ COCO_BASE_DIRECTORY
 
 Result project will be saved in your current `Workspace` with name `Original COCO` for original datasets and `Custom COCO` for custom datasets
 
+<div align="center" markdown>
 <img src="https://i.imgur.com/BJuGxtL.png"/>
+</div>
