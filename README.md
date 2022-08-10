@@ -1,5 +1,5 @@
 <div align="center" markdown>
-<img src="https://user-images.githubusercontent.com/48913536/183898471-b65296e2-ec2e-4953-a660-b6a76d935545.png"/>
+<img src="https://user-images.githubusercontent.com/48913536/183913663-f48c6c5e-65af-4f7d-b442-8699f2b48309.png"/>
 
 
 # Import COCO
