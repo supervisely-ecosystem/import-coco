@@ -2,7 +2,7 @@ import os
 import shutil
 
 import requests
-from supervisely.io.fs import download, file_exists, mkdir, silent_remove
+from supervisely.io.fs import download, file_exists, mkdir, silent_remove, dir_exists
 
 import dl_progress
 import globals as g
@@ -68,6 +68,24 @@ def download_original_coco_dataset(datasets, app_logger):
     return datasets
 
 
+def download_dir_from_supervisely(
+    path_to_remote_dir, dir_path, progress_message, app_logger
+):
+    dir_size = g.api.file.get_directory_size(g.TEAM_ID, path_to_remote_dir)
+    if not dir_exists(dir_path):
+        progress_upload_cb = dl_progress.get_progress_cb(
+            g.api, g.TASK_ID, progress_message, total=dir_size, is_size=True
+        )
+        g.api.file.download_directory(
+            g.TEAM_ID, 
+            path_to_remote_dir, 
+            dir_path, 
+            progress_cb=progress_upload_cb
+        )
+
+        app_logger.info(f'Directory "{path_to_remote_dir}" has been successfully downloaded')
+
+
 def download_file_from_supervisely(
     path_to_remote_dataset, archive_path, archive_name, progress_message, app_logger
 ):
@@ -86,17 +104,35 @@ def download_file_from_supervisely(
 
 
 def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
-    archive_name = os.path.basename(os.path.normpath(path_to_remote_dataset))
-    archive_path = os.path.join(g.COCO_BASE_DIR, archive_name)
-    download_file_from_supervisely(
-        path_to_remote_dataset,
-        archive_path,
-        archive_name,
-        f'Download "{archive_name}"',
-        app_logger,
-    )
-    shutil.unpack_archive(archive_path, g.COCO_BASE_DIR)
-    silent_remove(archive_path)
+    if g.api.file.exists(g.TEAM_ID, path_to_remote_dataset):
+        archive_name = os.path.basename(os.path.normpath(path_to_remote_dataset))
+        archive_path = os.path.join(g.COCO_BASE_DIR, archive_name)
+        download_file_from_supervisely(
+            path_to_remote_dataset,
+            archive_path,
+            archive_name,
+            f'Download "{archive_name}"',
+            app_logger,
+        )
+        app_logger.info("Unpacking archive...")
+        shutil.unpack_archive(archive_path, g.COCO_BASE_DIR)
+        silent_remove(archive_path)
+        assert len(os.listdir(g.COCO_BASE_DIR)) == 1, \
+            "ERROR: Archive must contain only 1 project folder with datasets in COCO format."
+        app_logger.info("Archive has been unpacked.")
+        g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, os.listdir(g.COCO_BASE_DIR)[0])
+    elif g.api.file.dir_exists(g.TEAM_ID, path_to_remote_dataset):
+        dir_name = os.path.basename(os.path.normpath(path_to_remote_dataset))
+        dir_path = os.path.join(g.COCO_BASE_DIR, dir_name)
+        download_dir_from_supervisely(
+            path_to_remote_dataset,
+            dir_path,
+            f'Download "{dir_name}"',
+            app_logger,
+        )
+        g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, os.path.basename(os.path.normpath(path_to_remote_dataset)))
+    else:
+        raise ValueError(f"File or directory {path_to_remote_dataset} not found in Team Files.")
     return list(os.listdir(g.COCO_BASE_DIR))
 
 
