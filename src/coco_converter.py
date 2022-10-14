@@ -80,7 +80,7 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                 figure = polygon
                 label = sly.Label(figure, obj_class)
                 labels.append(label)
-        else:
+        elif type(object["segmentation"]) is list and object["segmentation"]:
             figure = convert_polygon_vertices(object)
             label = sly.Label(figure, obj_class)
             labels.append(label)
