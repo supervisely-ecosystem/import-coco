@@ -6,16 +6,11 @@ import supervisely as sly
 from supervisely.io.fs import mkdir
 from pathlib import Path
 
-app_root_directory = str(Path(sys.argv[0]).parents[1])
-sys.path.append(app_root_directory)
-sys.path.append(os.path.join(app_root_directory, "src"))
-print(f"App root directory: {app_root_directory}")
-sly.logger.info(f'PYTHONPATH={os.environ.get("PYTHONPATH", "")}')
+from dotenv import load_dotenv
 
-# order matters
-# from dotenv import load_dotenv
-# load_dotenv(os.path.join(app_root_directory, "debug.env"))
-# load_dotenv(os.path.join(app_root_directory, "secret_debug.env"), override=True)
+if sly.is_development():
+    load_dotenv("local.env")
+    load_dotenv(os.path.expanduser("~/supervisely.env"))
 
 my_app = sly.AppService()
 api: sly.Api = my_app.public_api

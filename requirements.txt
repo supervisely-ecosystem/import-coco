@@ -1,1 +1,2 @@
-pycocotools==2.0.2  # to convert RLE masks
+supervisely==6.71.14
+pycocotools==2.0.6  # to convert RLE masks
