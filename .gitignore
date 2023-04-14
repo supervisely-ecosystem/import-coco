@@ -1,5 +1,6 @@
 secret_debug.env
 venv
+.venv
 debug
 .idea
 /src/TEST_DATASET

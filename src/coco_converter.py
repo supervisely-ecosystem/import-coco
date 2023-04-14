@@ -50,20 +50,24 @@ def coco_category_to_class_name(coco_categories):
 def convert_polygon_vertices(coco_ann):
     for polygons in coco_ann["segmentation"]:
         exterior = polygons
-        exterior = [
-            exterior[i * 2 : (i + 1) * 2] for i in range((len(exterior) + 2 - 1) // 2)
-        ]
+        exterior = [exterior[i * 2 : (i + 1) * 2] for i in range((len(exterior) + 2 - 1) // 2)]
         exterior = [sly.PointLocation(height, width) for width, height in exterior]
         return sly.Polygon(exterior, [])
 
 
 def convert_rle_mask_to_polygon(coco_ann):
-    rle_obj = mask_util.frPyObjects(
-        coco_ann["segmentation"],
-        coco_ann["segmentation"]["size"][0],
-        coco_ann["segmentation"]["size"][1],
-    )
-    mask = mask_util.decode(rle_obj)
+    if type(coco_ann["segmentation"]["counts"]) is str:
+        coco_ann["segmentation"]["counts"] = bytes(
+            coco_ann["segmentation"]["counts"], encoding="utf-8"
+        )
+        mask = mask_util.decode(coco_ann["segmentation"])
+    else:
+        rle_obj = mask_util.frPyObjects(
+            coco_ann["segmentation"],
+            coco_ann["segmentation"]["size"][0],
+            coco_ann["segmentation"]["size"][1],
+        )
+        mask = mask_util.decode(rle_obj)
     mask = np.array(mask, dtype=bool)
     return sly.Bitmap(mask).to_contours()
 
@@ -90,7 +94,9 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
         ymin = bbox[1]
         xmax = xmin + bbox[2]
         ymax = ymin + bbox[3]
-        rectangle = sly.Label(sly.Rectangle(top=ymin, left=xmin, bottom=ymax, right=xmax), obj_class)
+        rectangle = sly.Label(
+            sly.Rectangle(top=ymin, left=xmin, bottom=ymax, right=xmax), obj_class
+        )
         labels.append(rectangle)
     return sly.Annotation(image_size, labels)
 
