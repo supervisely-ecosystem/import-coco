@@ -57,12 +57,12 @@ COCO_BASE_DIRECTORY
 # How to Use
 **Step 1.** Add [Import COCO](https://ecosystem.supervise.ly/apps/import-coco) to your team from Ecosystem.
 
-<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/import-coco" src="https://i.imgur.com/d6ilGDr.png" width="350px" style='padding-bottom: 20px'/>
+<img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/import-coco" src="media/htu1.png" width="350px" style='padding-bottom: 20px'/>
 
 **Step 2.** Run app from the `Plugins & Apps` chapter:
 
 <div align="center" markdown>
-  <img src="https://i.imgur.com/2luJyn4.png"/>
+  <img src="media/htu2.png"/>
 </div>
 
 **Step 3.** Select import mode:
@@ -71,7 +71,7 @@ COCO_BASE_DIRECTORY
 - Use your custom dataset in COCO format by path to your archive in `Team Files`.
 
 <div align="center" markdown>
-  <img src="https://user-images.githubusercontent.com/48913536/183898478-05fc7314-3d28-408e-bbe5-90e6522f0102.png" width="700px"/>
+  <img src="media/htu3.png" width="700px"/>
 </div>
 
 **Step 4.** After pressing the `Run` button you will be redirected to the `Tasks` page.
@@ -81,5 +81,5 @@ COCO_BASE_DIRECTORY
 Result project will be saved in your current `Workspace` with name `Original COCO` for original datasets and `Custom COCO` for custom datasets
 
 <div align="center" markdown>
-<img src="https://i.imgur.com/BJuGxtL.png"/>
+<img src="media/r.png"/>
 </div>
