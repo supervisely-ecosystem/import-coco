@@ -9,6 +9,8 @@ from supervisely.io.fs import file_exists, mkdir
 
 import globals as g
 
+def add_tail(body:str, tail:str):
+    return f"{body} ({tail})"
 
 def create_sly_meta_from_coco_categories(coco_categories):
     colors = []
@@ -17,9 +19,13 @@ def create_sly_meta_from_coco_categories(coco_categories):
             continue
         new_color = sly.color.generate_rgb(colors)
         colors.append(new_color)
-        obj_class = sly.ObjClass(category["name"], sly.AnyGeometry, new_color)
-        g.META = g.META.add_obj_class(obj_class)
+        
+        obj_class_polygon = sly.ObjClass(add_tail(category['name'], "polygon"), sly.Polygon, new_color)
+        obj_class_rectangle = sly.ObjClass(add_tail(category['name'], "rectangle"), sly.Rectangle, new_color)
+        g.META = g.META.add_obj_classes([obj_class_polygon, obj_class_rectangle])
     return g.META
+
+
 
 
 def get_sly_meta_from_coco(coco_categories, dataset_name):
@@ -76,17 +82,17 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
     labels = []
     for object in coco_ann:
         name_cat_id_map = coco_category_to_class_name(coco_categories)
-        obj_class_name = name_cat_id_map[object["category_id"]]
-        obj_class = meta.get_obj_class(obj_class_name)
+        obj_class_name_polygon = add_tail( name_cat_id_map[object["category_id"]], "polygon")
+        obj_class_polygon = meta.get_obj_class(obj_class_name_polygon)
         if type(object["segmentation"]) is dict:
             polygons = convert_rle_mask_to_polygon(object)
             for polygon in polygons:
                 figure = polygon
-                label = sly.Label(figure, obj_class)
+                label = sly.Label(figure, obj_class_polygon)
                 labels.append(label)
         elif type(object["segmentation"]) is list and object["segmentation"]:
             figure = convert_polygon_vertices(object)
-            label = sly.Label(figure, obj_class)
+            label = sly.Label(figure, obj_class_polygon)
             labels.append(label)
 
         bbox = object["bbox"]
@@ -94,8 +100,11 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
         ymin = bbox[1]
         xmax = xmin + bbox[2]
         ymax = ymin + bbox[3]
+
+        obj_class_name_rectangle = add_tail( name_cat_id_map[object["category_id"]], "rectangle")
+        obj_class_rectangle = meta.get_obj_class(obj_class_name_rectangle)
         rectangle = sly.Label(
-            sly.Rectangle(top=ymin, left=xmin, bottom=ymax, right=xmax), obj_class
+            sly.Rectangle(top=ymin, left=xmin, bottom=ymax, right=xmax), obj_class_rectangle
         )
         labels.append(rectangle)
     return sly.Annotation(image_size, labels)

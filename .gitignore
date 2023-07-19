@@ -7,3 +7,4 @@ debug
 __pycache__
 src/debug
 src/demo_script.py
+supervisely
