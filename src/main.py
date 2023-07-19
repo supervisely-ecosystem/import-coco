@@ -44,8 +44,11 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             )
             g.img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
+
+            types = coco_converter.get_ann_types(coco)
+
             meta = coco_converter.get_sly_meta_from_coco(
-                coco_categories=categories, dataset_name=dataset
+                coco_categories=categories, dataset_name=dataset, ann_types=types
             )
 
             ds_progress = sly.Progress(
