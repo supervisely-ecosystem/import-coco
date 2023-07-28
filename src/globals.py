@@ -48,7 +48,7 @@ if COCO_MODE == "original":
     original_ds = str_to_list(os.environ["modal.state.originalDataset"])
 else:
     is_original = False
-    selected = os.environ["modal.state.teamFilesSelector.selected"]
+    selected = str_to_list(os.environ["modal.state.teamFilesSelector.selected"])
     if len(selected) == 0:
         raise ValueError("Archive or directory from team files is not selected. Please select it and try again.")
     custom_ds = selected[0]["path"]
