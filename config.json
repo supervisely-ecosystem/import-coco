@@ -19,8 +19,9 @@
         "teamFilesSelector": {
             "options": {
                 "multipleSelection": false,
-                "additionalFields": ["type", "size", "createdAt"],
-                "maxHeight": "300px"
+                "additionalFields": ["type", "size"],
+                "maxHeight": "300px",
+                "hideHeader": true
             },
                 "selected": []
         }
