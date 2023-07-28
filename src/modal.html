@@ -47,7 +47,11 @@
                 Custom dataset(s)
             </el-radio>
             <sly-field title="Path to file" description="Copy path in Team Files">
-                <el-input v-model="state.customDataset" placeholder="Path to archive in Team Files"></el-input>
+                <sly-select-team-files
+                    :team-id="context.teamId"
+                    :options="state.teamFilesSelector.options"
+                    @items-selected="state.teamFilesSelector.selected = $event"
+                />
             </sly-field>
             <div class="fflex align-start" style="flex-direction: column; margin: 0 0 20px 0"
                  v-if="!context.slyProjectId">

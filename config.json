@@ -15,7 +15,15 @@
             "val2017"
         ],
         "cocoDataset": "original",
-        "projectName": ""
+        "projectName": "",
+        "teamFilesSelector": {
+            "options": {
+                "multipleSelection": false,
+                "additionalFields": ["type", "size", "createdAt"],
+                "maxHeight": "300px"
+            },
+                "selected": []
+        }
     },
     "task_location": "workspace_tasks",
     "isolate": true,
