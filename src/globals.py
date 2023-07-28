@@ -21,7 +21,6 @@ def str_to_list(data):
     data = [n.strip() for n in data]
     return data
 
-
 TASK_ID = os.environ["TASK_ID"]
 TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
@@ -48,10 +47,10 @@ if COCO_MODE == "original":
     original_ds = str_to_list(os.environ["modal.state.originalDataset"])
 else:
     is_original = False
-    selected = str_to_list(os.environ["modal.state.teamFilesSelector.selected"])
+    selected = ast.literal_eval(os.environ["modal.state.teamFilesSelector.selected"])
     if len(selected) == 0:
         raise ValueError("Archive or directory from team files is not selected. Please select it and try again.")
-    custom_ds = selected[0]["path"]
+    custom_ds = selected["path"]
 
 images_links = {
     "train2014": "http://images.cocodataset.org/zips/train2014.zip",
