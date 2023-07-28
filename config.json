@@ -22,9 +22,14 @@
                 "additionalFields": ["type", "size"],
                 "maxHeight": "300px",
                 "hideHeader": true
-            },
-                "selected": []
+            }
         }
+    },
+    "context_menu": {
+        "target": [
+            "files_folder",
+            "files_file"
+        ]
     },
     "task_location": "workspace_tasks",
     "isolate": true,
