@@ -22,7 +22,8 @@
                 "additionalFields": ["type", "size"],
                 "maxHeight": "300px",
                 "hideHeader": true
-            }
+            },
+            "selected": {}
         }
     },
     "context_menu": {
