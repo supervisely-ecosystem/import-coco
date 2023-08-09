@@ -3,6 +3,7 @@ import shutil
 
 import requests
 from supervisely.io.fs import download, file_exists, mkdir, silent_remove, dir_exists
+import supervisely as sly
 
 import dl_progress
 import globals as g
@@ -117,6 +118,7 @@ def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
         app_logger.info("Unpacking archive...")
         shutil.unpack_archive(archive_path, g.COCO_BASE_DIR)
         silent_remove(archive_path)
+        sly.fs.remove_junk_from_dir(g.COCO_BASE_DIR)
         assert len(os.listdir(g.COCO_BASE_DIR)) == 1, \
             "ERROR: Archive must contain only 1 project folder with datasets in COCO format."
         app_logger.info("Archive has been unpacked.")
@@ -131,6 +133,7 @@ def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
             app_logger,
         )
         g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, os.path.basename(os.path.normpath(path_to_remote_dataset)))
+        sly.fs.remove_junk_from_dir(g.COCO_BASE_DIR)
     else:
         raise ValueError(f"File or directory {path_to_remote_dataset} not found in Team Files.")
     return list(os.listdir(g.COCO_BASE_DIR))
