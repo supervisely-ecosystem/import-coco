@@ -42,7 +42,7 @@
                 <el-radio slot="label" v-model="state.cocoDataset" label="custom">
                     Custom dataset(s)
                 </el-radio>
-                <sly-file-storage-upload v-if="context.slyProjectId"
+                <sly-file-storage-upload
                                  :options="{ folder: `${data.importFolder}${context.formId}/` }"
                                  @files-uploaded="state.files = `${data.importFolder}${context.formId}/`">
                 </sly-file-storage-upload>
