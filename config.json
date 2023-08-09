@@ -19,9 +19,6 @@
         "isDragMode": "Drag & drop",
         "files": {}
     },
-    "modal_template_data": {
-        "importFolder": "/import/import-coco/"
-    },
     "context_menu": {
         "target": [
             "ecosystem",

@@ -44,10 +44,9 @@
                 </el-radio>
                 <el-tabs v-model="state.isDragMode">
                     <el-tab-pane name="Drag & drop" label="Drag & drop">
-                        
                         <sly-file-storage-upload
-                        :options="{ folder: `${data.importFolder}${context.formId}/` }"
-                        @files-uploaded="state.files = $event">
+                        :options="{ folder: '/import/import-coco/' + context.formId + '/' }"
+                        @files-uploaded="state.files = '/import/import-coco/' + context.formId + '/'"
                         >
                         </sly-file-storage-upload>
                     </el-tab-pane>
