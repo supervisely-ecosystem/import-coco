@@ -46,7 +46,24 @@
                     <el-tab-pane name="Drag & drop" label="Drag & drop">
                         <sly-file-storage-upload
                         :options="{ folder: '/import/import-coco/' + context.formId + '/' }"
-                        @files-uploaded="state.files = '/import/import-coco/' + context.formId + '/'"
+                        @files-uploaded="(files) => {
+                            if (files.uploadedFiles && files.uploadedFiles.length === 1 && ['zip', 'tar'].includes(files.uploadedFiles[0].path.split('.').pop())']) { 
+                                state.files = files.uploadedFiles[0].path;
+                            }
+                            else {
+                                let baseFolderPrefix = '/import/import-coco/' + context.formId + '/';
+                                let folderPrefix = '';
+                                files.uploadedFiles.forEach((f, idx) => {
+                                    const filePathParts = f.path.replace(baseFolderPrefix, '').split('/');
+                                    if (filePathParts?.length > 1) {
+                                    if (idx === 0) { folderPrefix = filePathParts[0]; }
+                                    else if (filePathParts[0] !== folderPrefix) { folderPrefix = ''; }
+                                    } else { folderPrefix = ''; }
+                                });
+                                if (folderPrefix) { baseFolderPrefix += `${folderPrefix}/`; }
+                                state.state = baseFolderPrefix;
+                            }
+                        }"
                         >
                         </sly-file-storage-upload>
                     </el-tab-pane>
@@ -59,7 +76,11 @@
                             maxHeight: '250px',
                             hideHeader: true
                         }"
-                        @items-selected="state.files = $event">
+                        @items-selected="(files) => {
+                            if (files && files.length) { 
+                                state.files = files[0].path;
+                            }
+                        }">
                         </sly-select-team-files>
                     </el-tab-pane>
                 </el-tabs>
