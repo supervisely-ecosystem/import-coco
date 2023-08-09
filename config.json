@@ -15,7 +15,8 @@
             "val2017"
         ],
         "cocoDataset": "original",
-        "projectName": ""
+        "projectName": "",
+        "isDragMode": "Drag & drop"
     },
     "modal_template_data": {
         "importFolder": "/import/import-coco/"
