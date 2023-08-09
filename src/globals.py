@@ -51,24 +51,34 @@ if COCO_MODE == "original":
 else:
     is_original = False
     custom_ds = None
-    if INPUT_DIR is None and INPUT_FILE is None:
-        FILES = os.environ.get("modal.state.files")
-        sly.logger.info(f"Trying to find files in uploaded files: {FILES}")
-        files = ast.literal_eval(FILES)
-        if isinstance(files, dict) and "uploadedFiles" in files:
-            files = files.get("uploadedFiles")
-        if len(files) == 1 and sly.fs.get_file_ext(files[0]["path"]) in [".tar", ".zip"]:
-            INPUT_FILE = files[0]["path"]
+    files = os.environ.get("modal.state.files")
+    if files is not None:
+        sly.logger.info(f"Trying to find files in uploaded files: {files}")
+        ext = sly.fs.get_file_ext(files.rsplit("/"))
+        if ext in [".tar", ".zip"]:
+            INPUT_FILE = files
         else:
-            paths = [n["path"] for n in files]
-            INPUT_DIR = Path(os.path.commonpath(paths)).as_posix()
+            INPUT_DIR = files
+
+    if INPUT_DIR:
+        listdir = api.file.listdir(TEAM_ID, INPUT_DIR)
+        if len(listdir) == 1 and sly.fs.get_file_ext(listdir[0]) in [".zip", ".tar"]:
+            sly.logger.warn("Folder mode is selected, but archive file is uploaded.")
+            sly.logger.info("Switching to file mode.")
+            INPUT_DIR, INPUT_FILE = None, os.path.join(INPUT_DIR, listdir[0])
+    elif INPUT_FILE:
+        if sly.fs.get_file_ext(INPUT_FILE) not in [".zip", ".tar"]:
+            parent_dir, _ = os.path.split(INPUT_FILE)
+            if not parent_dir.endswith("/"):
+                parent_dir += "/"
+            INPUT_DIR, INPUT_FILE = parent_dir, None
 
     if INPUT_DIR:
         custom_ds = INPUT_DIR
-        sly.logger.info(f"Copying files from directory: {custom_ds}")
+        sly.logger.info(f"INPUT_DIR: {custom_ds}")
     elif INPUT_FILE:
         custom_ds = INPUT_FILE
-        sly.logger.info(f"Extracting archive: {custom_ds}")
+        sly.logger.info(f"INPUT_FILE: {custom_ds}")
     
 
 images_links = {
