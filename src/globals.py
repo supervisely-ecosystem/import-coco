@@ -32,11 +32,6 @@ INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
 FILES = os.environ.get("modal.state.files")
 
-if INPUT_DIR is not None or INPUT_FILE is not None or FILES is not None:
-    COCO_MODE = "custom"
-else:
-    COCO_MODE = "original"
-
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
 STORAGE_DIR = os.path.join(my_app.data_dir, "storage_dir")
