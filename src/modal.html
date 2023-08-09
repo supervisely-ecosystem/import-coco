@@ -42,10 +42,28 @@
                 <el-radio slot="label" v-model="state.cocoDataset" label="custom">
                     Custom dataset(s)
                 </el-radio>
-                <sly-file-storage-upload
-                                 :options="{ folder: `${data.importFolder}${context.formId}/` }"
-                                 @files-uploaded="state.files = `${data.importFolder}${context.formId}/`">
-                </sly-file-storage-upload>
+                <el-tabs v-model="state.isDragMode">
+                    <el-tab-pane name="Drag & drop" label="Drag & drop">
+                        
+                        <sly-file-storage-upload
+                        :options="{ folder: `${data.importFolder}${context.formId}/` }"
+                        @files-uploaded="state.files = $event">
+                        >
+                        </sly-file-storage-upload>
+                    </el-tab-pane>
+                    <el-tab-pane name="Team files" label="Team files">
+                        <sly-select-team-files
+                        :team-id="context.teamId"
+                        :options="{
+                            multipleSelection: false,
+                            additionalFields: ['size'],
+                            maxHeight: '250px',
+                            hideHeader: true
+                        }"
+                        @items-selected="state.files = $event">
+                        </sly-select-team-files>
+                    </el-tab-pane>
+                </el-tabs>
             </el-tab-pane>
         </el-tabs>
     </sly-field>
