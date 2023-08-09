@@ -31,6 +31,9 @@ META = sly.ProjectMeta()
 INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
 
+if INPUT_DIR is not None or INPUT_FILE is not None:
+    COCO_MODE = "custom"
+
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
 STORAGE_DIR = os.path.join(my_app.data_dir, "storage_dir")
