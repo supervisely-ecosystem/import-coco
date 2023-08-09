@@ -21,6 +21,11 @@ def str_to_list(data):
     data = [n.strip() for n in data]
     return data
 
+def str_to_dict(data):
+    data = ast.literal_eval(data)
+    data = {n.strip(): m for n, m in data.items()}
+    return data
+
 TASK_ID = os.environ["TASK_ID"]
 TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
@@ -54,10 +59,9 @@ else:
     if INPUT_DIR is None and INPUT_FILE is None:
         FILES = os.environ.get("modal.state.files")
         sly.logger.info(f"Trying to find files in uploaded files: {FILES}")
-        files = FILES.get("uploadedFiles")
-        if files is None:
-            raise RuntimeError("Please upload files or specify directory")
-        files = str_to_list(files)
+        files = str_to_dict(FILES)
+        if "uploadedFiles" in files:
+            files = files.get("uploadedFiles")
         if len(files) == 1 and sly.fs.get_file_ext(files[0]["path"]) in ["tar", "zip"]:
             INPUT_FILE = files[0]["path"]
         else:
