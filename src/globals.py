@@ -58,11 +58,12 @@ else:
     is_original = False
     custom_ds = None
     if INPUT_DIR is None and INPUT_FILE is None:
-        custom_ds = str_to_list(FILES)
-        if len(custom_ds) == 1 and sly.fs.get_file_ext(custom_ds[0]) in ["tar", "zip"]:
-            INPUT_FILE = custom_ds[0]
+        files = str_to_list(FILES)
+        if len(files) == 1 and sly.fs.get_file_ext(files[0]["path"]) in ["tar", "zip"]:
+            INPUT_FILE = files[0]["path"]
         else:
-            INPUT_DIR = Path(os.path.commonpath(custom_ds))
+            paths = [n["path"] for n in files]
+            INPUT_DIR = Path(os.path.commonpath(paths))
 
     if INPUT_DIR:
         custom_ds = INPUT_DIR
