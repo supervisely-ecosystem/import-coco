@@ -30,7 +30,6 @@ META = sly.ProjectMeta()
 
 INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
-FILES = os.environ.get("modal.state.files")
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
@@ -53,6 +52,8 @@ else:
     is_original = False
     custom_ds = None
     if INPUT_DIR is None and INPUT_FILE is None:
+        FILES = os.environ.get("modal.state.files")
+        sly.logger.info(f"Trying to find files in uploaded files: {FILES}")
         files = FILES.get("uploadedFiles")
         if files is None:
             raise RuntimeError("Please upload files or specify directory")
