@@ -43,7 +43,7 @@
                     Custom dataset(s)
                 </el-radio>
                 <el-tabs v-model="state.isDragMode">
-                    <el-tab-pane label="Drag & drop" @tab-click="state.isDragMode = true">
+                    <el-tab-pane name="Drag & drop" label="Drag & drop">
                         <sly-file-storage-upload
                         :options="{ folder: `${data.importFolder}${context.formId}/` }"
                         @files-uploaded="(files) => {
@@ -67,7 +67,7 @@
                         >
                         </sly-file-storage-upload>
                     </el-tab-pane>
-                    <el-tab-pane label="Team files" @tab-click="state.isDragMode = false">
+                    <el-tab-pane name="Team files" label="Team files">
                         <sly-select-team-files
                         :team-id="context.teamId"
                         :options="{
