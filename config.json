@@ -20,7 +20,7 @@
             "options": {
                 "multipleSelection": false,
                 "additionalFields": ["size"],
-                "maxHeight": "300px",
+                "maxHeight": "250px",
                 "hideHeader": true
             },
             "selected": {}
