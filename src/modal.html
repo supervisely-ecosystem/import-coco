@@ -37,15 +37,6 @@
                         </div>
                     </el-checkbox-group>
                 </sly-field>
-
-                <div class="fflex align-start" style="flex-direction: column; margin: 0 0 20px 0"
-                    v-if="!context.slyProjectId">
-                    <sly-field
-                            title="Result Project Name"
-                            description="Enter project name manually (optional) or keep empty to generate it automatically">
-                    </sly-field>
-                    <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
-                </div>
             </el-tab-pane>
             <el-tab-pane name="custom">
                 <el-radio slot="label" v-model="state.cocoDataset" label="custom">
@@ -54,11 +45,11 @@
                 <el-tabs v-model="state.isDragMode">
                     <el-tab-pane label="Drag & drop" @tab-click="state.isDragMode = true">
                         <sly-file-storage-upload
-                        :options="{ folder: `${data.importFolder}${context.formId}/`; }"
+                        :options="{ folder: `${data.importFolder}${context.formId}/` }"
                         @files-uploaded="(files) => {
                             if (files.uploadedFiles.length == 1 && ['tar', 'zip'].includes(files.uploadedFiles[0].split('.').pop())) { 
                                 state.slyFile = files.uploadedFiles[0];
-                            ; }
+                            }
                             else {
                                 let baseFolderPrefix = `${data.importFolder}${context.formId}/`;
                                 let folderPrefix = '';
