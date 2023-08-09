@@ -69,6 +69,10 @@ else:
     elif INPUT_FILE:
         if sly.fs.get_file_ext(INPUT_FILE) not in [".zip", ".tar"]:
             parent_dir, _ = os.path.split(INPUT_FILE)
+            if os.path.basename(parent_dir) in ["images", "annotations"]:
+                parent_dir = os.path.dirname(os.path.dirname(parent_dir))
+            elif ["images", "annotations"] in api.file.listdir(TEAM_ID, parent_dir):
+                parent_dir = os.path.dirname(parent_dir)
             if not parent_dir.endswith("/"):
                 parent_dir += "/"
             INPUT_DIR, INPUT_FILE = parent_dir, None
