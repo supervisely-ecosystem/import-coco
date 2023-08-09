@@ -28,6 +28,7 @@
     },
     "context_menu": {
         "target": [
+            "ecosystem",
             "files_folder",
             "files_file"
         ]
