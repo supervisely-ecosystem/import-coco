@@ -1,100 +1,100 @@
-<div>
-<div>
-    <pre>
-        {{JSON.stringify(state, null, 2)}}
-    </pre>
-    <sly-field>
-        <el-tabs type="border-card" class="el-tabs-cards" v-model="state.cocoDataset">
-            <el-tab-pane name="original">
-                <el-radio slot="label" v-model="state.cocoDataset" label="original">
-                    COCO datasets
-                </el-radio>
-                <sly-field>
-                    <el-checkbox-group v-model="state.originalDataset">
+<div v-if="!state.SlyFolder && !state.SlyFile">
+    <div>
+        <pre>
+            {{JSON.stringify(state, null, 2)}}
+        </pre>
+        <sly-field>
+            <el-tabs type="border-card" class="el-tabs-cards" v-model="state.cocoDataset">
+                <el-tab-pane name="original">
+                    <el-radio slot="label" v-model="state.cocoDataset" label="original">
+                        COCO datasets
+                    </el-radio>
+                    <sly-field>
+                        <el-checkbox-group v-model="state.originalDataset">
 
-                        <h3>COCO2017</h3>
+                            <h3>COCO2017</h3>
 
-                        <div class="mt5">
-                            <el-checkbox label="train2017"></el-checkbox>
-                        </div>
-                        <div class="mt5">
-                            <el-checkbox label="val2017"></el-checkbox>
-                        </div>
-                        <div class="mt5">
-                            <el-checkbox label="test2017"></el-checkbox>
-                        </div>
+                            <div class="mt5">
+                                <el-checkbox label="train2017"></el-checkbox>
+                            </div>
+                            <div class="mt5">
+                                <el-checkbox label="val2017"></el-checkbox>
+                            </div>
+                            <div class="mt5">
+                                <el-checkbox label="test2017"></el-checkbox>
+                            </div>
 
-                        <h3>COCO2014</h3>
+                            <h3>COCO2014</h3>
 
-                        <div class="mt15">
-                            <el-checkbox label="train2014"></el-checkbox>
-                        </div>
-                        <div class="mt5">
-                            <el-checkbox label="val2014"></el-checkbox>
-                        </div>
-                        <div class="mt5">
-                            <el-checkbox label="test2014"></el-checkbox>
-                        </div>
-                    </el-checkbox-group>
-                </sly-field>
-            </el-tab-pane>
-            <el-tab-pane name="custom">
-                <el-radio slot="label" v-model="state.cocoDataset" label="custom">
-                    Custom dataset(s)
-                </el-radio>
-                <el-tabs v-model="state.isDragMode">
-                    <el-tab-pane name="Drag & drop" label="Drag & drop">
-                        <sly-file-storage-upload
-                        :options="{ folder: '/import/import-coco/' + context.formId + '/' }"
-                        @files-uploaded="(files) => {
-                            if (files.uploadedFiles && files.uploadedFiles.length === 1 && ['zip', 'tar'].includes(files.uploadedFiles[0].path.split('.').pop())) { 
-                                state.files = files.uploadedFiles[0].path;
-                            }
-                            else {
-                                let baseFolderPrefix = '/import/import-coco/' + context.formId + '/';
-                                let folderPrefix = '';
-                                files.uploadedFiles.forEach((f, idx) => {
-                                    const filePathParts = f.path.replace(baseFolderPrefix, '').split('/');
-                                    if (filePathParts?.length > 1) {
-                                    if (idx === 0) { folderPrefix = filePathParts[0]; }
-                                    else if (filePathParts[0] !== folderPrefix) { folderPrefix = ''; }
-                                    } else { folderPrefix = ''; }
-                                });
-                                if (folderPrefix) { baseFolderPrefix += `${folderPrefix}/`; }
-                                state.files = baseFolderPrefix;
-                            }
-                        }"
-                        >
-                        </sly-file-storage-upload>
-                    </el-tab-pane>
-                    <el-tab-pane name="Team files" label="Team files">
-                        <sly-select-team-files
-                        :team-id="context.teamId"
-                        :options="{
-                            multipleSelection: false,
-                            additionalFields: ['size'],
-                            maxHeight: '250px',
-                            hideHeader: true
-                        }"
-                        @items-selected="(files) => {
-                            if (files && files.length) { 
-                                state.files = files[0].path;
-                            }
-                        }">
-                        </sly-select-team-files>
-                    </el-tab-pane>
-                </el-tabs>
-            </el-tab-pane>
-        </el-tabs>
-    </sly-field>
-</div>
-<div class="fflex align-start" style="flex-direction: column; margin: 20px 0 20px 0"
-        v-if="!context.slyProjectId">
-    <sly-field
-            title="Result Project Name"
-            description="Enter project name manually (optional) or keep empty to generate it automatically">
-    </sly-field>
-    <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
-</div>
+                            <div class="mt15">
+                                <el-checkbox label="train2014"></el-checkbox>
+                            </div>
+                            <div class="mt5">
+                                <el-checkbox label="val2014"></el-checkbox>
+                            </div>
+                            <div class="mt5">
+                                <el-checkbox label="test2014"></el-checkbox>
+                            </div>
+                        </el-checkbox-group>
+                    </sly-field>
+                </el-tab-pane>
+                <el-tab-pane name="custom">
+                    <el-radio slot="label" v-model="state.cocoDataset" label="custom">
+                        Custom dataset(s)
+                    </el-radio>
+                    <el-tabs v-model="state.isDragMode">
+                        <el-tab-pane name="Drag & drop" label="Drag & drop">
+                            <sly-file-storage-upload
+                            :options="{ folder: '/import/import-coco/' + context.formId + '/' }"
+                            @files-uploaded="(files) => {
+                                if (files.uploadedFiles && files.uploadedFiles.length === 1 && ['zip', 'tar'].includes(files.uploadedFiles[0].path.split('.').pop())) { 
+                                    state.files = files.uploadedFiles[0].path;
+                                }
+                                else {
+                                    let baseFolderPrefix = '/import/import-coco/' + context.formId + '/';
+                                    let folderPrefix = '';
+                                    files.uploadedFiles.forEach((f, idx) => {
+                                        const filePathParts = f.path.replace(baseFolderPrefix, '').split('/');
+                                        if (filePathParts?.length > 1) {
+                                        if (idx === 0) { folderPrefix = filePathParts[0]; }
+                                        else if (filePathParts[0] !== folderPrefix) { folderPrefix = ''; }
+                                        } else { folderPrefix = ''; }
+                                    });
+                                    if (folderPrefix) { baseFolderPrefix += `${folderPrefix}/`; }
+                                    state.files = baseFolderPrefix;
+                                }
+                            }"
+                            >
+                            </sly-file-storage-upload>
+                        </el-tab-pane>
+                        <el-tab-pane name="Team files" label="Team files">
+                            <sly-select-team-files
+                            :team-id="context.teamId"
+                            :options="{
+                                multipleSelection: false,
+                                additionalFields: ['size'],
+                                maxHeight: '250px',
+                                hideHeader: true
+                            }"
+                            @items-selected="(files) => {
+                                if (files && files.length) { 
+                                    state.files = files[0].path;
+                                }
+                            }">
+                            </sly-select-team-files>
+                        </el-tab-pane>
+                    </el-tabs>
+                </el-tab-pane>
+            </el-tabs>
+        </sly-field>
+    </div>
+    <div class="fflex align-start" style="flex-direction: column; margin: 20px 0 20px 0"
+            v-if="!context.slyProjectId">
+        <sly-field
+                title="Result Project Name"
+                description="Enter project name manually (optional) or keep empty to generate it automatically">
+        </sly-field>
+        <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
+    </div>
 </div>
 
