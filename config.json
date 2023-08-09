@@ -15,16 +15,7 @@
             "val2017"
         ],
         "cocoDataset": "original",
-        "projectName": "",
-        "teamFilesSelector": {
-            "options": {
-                "multipleSelection": false,
-                "additionalFields": ["size"],
-                "maxHeight": "250px",
-                "hideHeader": true
-            },
-            "selected": {}
-        }
+        "projectName": ""
     },
     "context_menu": {
         "target": [
