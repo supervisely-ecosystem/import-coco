@@ -47,7 +47,7 @@
                         <sly-file-storage-upload
                         :options="{ folder: '/import/import-coco/' + context.formId + '/' }"
                         @files-uploaded="(files) => {
-                            if (files.uploadedFiles && files.uploadedFiles.length === 1 && ['zip', 'tar'].includes(files.uploadedFiles[0].path.split('.').pop())']) { 
+                            if (files.uploadedFiles && files.uploadedFiles.length === 1 && ['zip', 'tar'].includes(files.uploadedFiles[0].path.split('.').pop())) { 
                                 state.files = files.uploadedFiles[0].path;
                             }
                             else {
@@ -61,7 +61,7 @@
                                     } else { folderPrefix = ''; }
                                 });
                                 if (folderPrefix) { baseFolderPrefix += `${folderPrefix}/`; }
-                                state.state = baseFolderPrefix;
+                                state.files = baseFolderPrefix;
                             }
                         }"
                         >
