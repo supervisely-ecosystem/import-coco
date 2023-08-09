@@ -57,11 +57,11 @@ else:
         files = ast.literal_eval(FILES)
         if isinstance(files, dict) and "uploadedFiles" in files:
             files = files.get("uploadedFiles")
-        if len(files) == 1 and sly.fs.get_file_ext(files[0]["path"]) in ["tar", "zip"]:
+        if len(files) == 1 and sly.fs.get_file_ext(files[0]["path"]) in [".tar", ".zip"]:
             INPUT_FILE = files[0]["path"]
         else:
             paths = [n["path"] for n in files]
-            INPUT_DIR = Path(os.path.commonpath(paths))
+            INPUT_DIR = Path(os.path.commonpath(paths)).as_posix()
 
     if INPUT_DIR:
         custom_ds = INPUT_DIR
