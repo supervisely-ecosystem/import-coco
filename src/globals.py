@@ -25,8 +25,16 @@ TASK_ID = os.environ["TASK_ID"]
 TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
-COCO_MODE = os.environ["modal.state.cocoDataset"]
+COCO_MODE = os.environ.get("modal.state.cocoDataset")
 META = sly.ProjectMeta()
+
+INPUT_DIR = os.environ.get("modal.state.slyFolder")
+INPUT_FILE = os.environ.get("modal.state.slyFile")
+
+if INPUT_DIR is not None or INPUT_FILE is not None:
+    COCO_MODE = "custom"
+else:
+    COCO_MODE = "original"
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
@@ -47,10 +55,7 @@ if COCO_MODE == "original":
     original_ds = str_to_list(os.environ["modal.state.originalDataset"])
 else:
     is_original = False
-    selected = ast.literal_eval(os.environ["modal.state.teamFilesSelector.selected"])
-    if len(selected) == 0:
-        raise ValueError("Archive or directory from team files is not selected. Please select it and try again.")
-    custom_ds = selected[0]["path"]
+    custom_ds = INPUT_DIR if INPUT_DIR else INPUT_FILE
 
 images_links = {
     "train2014": "http://images.cocodataset.org/zips/train2014.zip",

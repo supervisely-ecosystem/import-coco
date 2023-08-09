@@ -105,7 +105,9 @@ def download_file_from_supervisely(
 
 
 def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
-    if g.api.file.exists(g.TEAM_ID, path_to_remote_dataset):
+    if g.INPUT_FILE:
+        if not g.api.file.exists(g.TEAM_ID, path_to_remote_dataset):
+            raise FileNotFoundError(f"File {path_to_remote_dataset} not found in Team Files")
         archive_name = os.path.basename(os.path.normpath(path_to_remote_dataset))
         archive_path = os.path.join(g.COCO_BASE_DIR, archive_name)
         download_file_from_supervisely(
@@ -122,7 +124,9 @@ def download_custom_coco_dataset(path_to_remote_dataset, app_logger):
             "ERROR: Archive must contain only 1 project folder with datasets in COCO format."
         app_logger.info("Archive has been unpacked.")
         g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, os.listdir(g.COCO_BASE_DIR)[0])
-    elif g.api.file.dir_exists(g.TEAM_ID, path_to_remote_dataset):
+    elif g.INPUT_DIR:
+        if not g.api.file.dir_exists(g.TEAM_ID, path_to_remote_dataset):
+            raise FileNotFoundError(f"Directory {path_to_remote_dataset} not found in Team Files")
         dir_name = os.path.basename(os.path.normpath(path_to_remote_dataset))
         dir_path = os.path.join(g.COCO_BASE_DIR, dir_name)
         download_dir_from_supervisely(

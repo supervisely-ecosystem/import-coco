@@ -1,4 +1,4 @@
-<sly-field>
+<sly-field v-if="!context.slyFolder && !context.slyFile">
     <el-tabs type="border-card" class="el-tabs-cards" v-model="state.cocoDataset">
         <el-tab-pane name="original">
             <el-radio slot="label" v-model="state.cocoDataset" label="original">
@@ -46,22 +46,57 @@
             <el-radio slot="label" v-model="state.cocoDataset" label="custom">
                 Custom dataset(s)
             </el-radio>
-            <sly-field title="Path to file" description="Copy path in Team Files">
-                <sly-select-team-files
+            <el-tabs v-model="state.isDragMode">
+                <el-tab-pane label="Drag & drop" @tab-click="state.isDragMode = true">
+                    <sly-file-storage-upload
+                    :options="{ folder: `${data.importFolder}${context.formId}/`; }"
+                    @files-uploaded="(files) => {
+                        if (files.uploadedFiles.length == 1 && ['tar', 'zip'].includes(files.uploadedFiles[0].split('.').pop())) { 
+                            state.slyFile = files.uploadedFiles[0];
+                        ; }
+                        else {
+                            let baseFolderPrefix = `${data.importFolder}${context.formId}/`;
+                            let folderPrefix = '';
+                            files.uploadedFiles.forEach((f, idx) => {
+                                const filePathParts = f.path.replace(baseFolderPrefix, '').split('/');
+                                if (filePathParts?.length > 1) {
+                                if (idx === 0) { folderPrefix = filePathParts[0]; }
+                                else if (filePathParts[0] !== folderPrefix) { folderPrefix = ''; }
+                                } else { folderPrefix = ''; }
+                            });
+                            if (folderPrefix) { baseFolderPrefix += `${folderPrefix}/`; }
+                            state.slyFolder = baseFolderPrefix;
+                        }
+                    }"
+                    >
+                    </sly-file-storage-upload>
+                </el-tab-pane>
+                <el-tab-pane label="Team files" @tab-click="state.isDragMode = false">
+                    <sly-select-team-files
                     :team-id="context.teamId"
                     :options="state.teamFilesSelector.options"
                     @items-selected="state.teamFilesSelector.selected = $event"
-                />
-            </sly-field>
-            <div class="fflex align-start" style="flex-direction: column; margin: 0 0 20px 0"
-                 v-if="!context.slyProjectId">
-                <sly-field
-                        title="Result Project Name"
-                        description="Enter project name manually (optional) or keep empty to generate it automatically">
-                </sly-field>
-                <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
-            </div>
+                    @items-selected="if (files && files.length) { 
+                        let setName = 'slyFolder';
+                        let clearName = 'slyFile';
+                        if (files[0].type === 'file') { setName = 'slyFile'; clearName = 'slyFolder'  }
+                        state[setName] = files[0].path;
+                        state[clearName] = null;
+                        } else { 
+                        state.slyFolder = null; state.slyFile = null; 
+                    }">
+                    </sly-select-team-files>
+                </el-tab-pane>
+            </el-tabs>
         </el-tab-pane>
     </el-tabs>
 </sly-field>
+<div class="fflex align-start" style="flex-direction: column; margin: 20px 0 20px 0"
+        v-if="!context.slyProjectId">
+    <sly-field
+            title="Result Project Name"
+            description="Enter project name manually (optional) or keep empty to generate it automatically">
+    </sly-field>
+    <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
+</div>
 
