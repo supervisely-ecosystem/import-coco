@@ -30,8 +30,9 @@ META = sly.ProjectMeta()
 
 INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
+FILES = os.environ.get("modal.state.files")
 
-if INPUT_DIR is not None or INPUT_FILE is not None:
+if INPUT_DIR is not None or INPUT_FILE is not None or FILES is not None:
     COCO_MODE = "custom"
 else:
     COCO_MODE = "original"
@@ -55,7 +56,21 @@ if COCO_MODE == "original":
     original_ds = str_to_list(os.environ["modal.state.originalDataset"])
 else:
     is_original = False
-    custom_ds = INPUT_DIR if INPUT_DIR else INPUT_FILE
+    custom_ds = None
+    if INPUT_DIR is None and INPUT_FILE is None:
+        custom_ds = str_to_list(FILES)
+        if len(custom_ds) == 1 and sly.fs.get_file_ext(custom_ds[0]) in ["tar", "zip"]:
+            INPUT_FILE = custom_ds[0]
+        else:
+            INPUT_DIR = Path(os.path.commonpath(custom_ds))
+
+    if INPUT_DIR:
+        custom_ds = INPUT_DIR
+        sly.logger.info(f"Copying files from directory: {custom_ds}")
+    elif INPUT_FILE:
+        custom_ds = INPUT_FILE
+        sly.logger.info(f"Extracting archive: {custom_ds}")
+    
 
 images_links = {
     "train2014": "http://images.cocodataset.org/zips/train2014.zip",

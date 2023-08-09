@@ -42,52 +42,10 @@
                 <el-radio slot="label" v-model="state.cocoDataset" label="custom">
                     Custom dataset(s)
                 </el-radio>
-                <el-tabs v-model="state.isDragMode">
-                    <el-tab-pane name="Drag & drop" label="Drag & drop">
-                        <sly-file-storage-upload
-                        :options="{ folder: `${data.importFolder}${context.formId}/` }"
-                        @files-uploaded="(files) => {
-                            if (files.uploadedFiles.length == 1 && ['tar', 'zip'].includes(files.uploadedFiles[0].split('.').pop())) { 
-                                state.slyFile = files.uploadedFiles[0];
-                            }
-                            else {
-                                let baseFolderPrefix = `${data.importFolder}${context.formId}/`;
-                                let folderPrefix = '';
-                                files.uploadedFiles.forEach((f, idx) => {
-                                    const filePathParts = f.path.replace(baseFolderPrefix, '').split('/');
-                                    if (filePathParts?.length > 1) {
-                                    if (idx === 0) { folderPrefix = filePathParts[0]; }
-                                    else if (filePathParts[0] !== folderPrefix) { folderPrefix = ''; }
-                                    } else { folderPrefix = ''; }
-                                });
-                                if (folderPrefix) { baseFolderPrefix += `${folderPrefix}/`; }
-                                state.slyFolder = baseFolderPrefix;
-                            }
-                        }"
-                        >
-                        </sly-file-storage-upload>
-                    </el-tab-pane>
-                    <el-tab-pane name="Team files" label="Team files">
-                        <sly-select-team-files
-                        :team-id="context.teamId"
-                        :options="{
-                            multipleSelection: false,
-                            additionalFields: ['size'],
-                            maxHeight: '250px',
-                            hideHeader: true
-                        }"
-                        @items-selected="if (files && files.length) { 
-                            let setName = 'slyFolder';
-                            let clearName = 'slyFile';
-                            if (files[0].type === 'file') { setName = 'slyFile'; clearName = 'slyFolder'  }
-                            state[setName] = files[0].path;
-                            state[clearName] = null;
-                            } else { 
-                            state.slyFolder = null; state.slyFile = null; 
-                        }">
-                        </sly-select-team-files>
-                    </el-tab-pane>
-                </el-tabs>
+                <sly-file-storage-upload v-if="context.slyProjectId"
+                                 :options="{ folder: `${data.importFolder}${context.formId}/` }"
+                                 @files-uploaded="state.files = `${data.importFolder}${context.formId}/`">
+                </sly-file-storage-upload>
             </el-tab-pane>
         </el-tabs>
     </sly-field>
