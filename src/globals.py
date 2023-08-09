@@ -53,7 +53,10 @@ else:
     is_original = False
     custom_ds = None
     if INPUT_DIR is None and INPUT_FILE is None:
-        files = str_to_list(FILES)
+        files = FILES.get("uploadedFiles")
+        if files is None:
+            raise RuntimeError("Please upload files or specify directory")
+        files = str_to_list(files)
         if len(files) == 1 and sly.fs.get_file_ext(files[0]["path"]) in ["tar", "zip"]:
             INPUT_FILE = files[0]["path"]
         else:
