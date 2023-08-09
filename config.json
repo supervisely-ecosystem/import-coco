@@ -17,6 +17,9 @@
         "cocoDataset": "original",
         "projectName": ""
     },
+    "modal_template_data": {
+        "importFolder": "/import/import-coco/"
+    },
     "context_menu": {
         "target": [
             "ecosystem",
