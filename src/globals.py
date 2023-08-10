@@ -26,12 +26,13 @@ TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
 COCO_MODE = os.environ.get("modal.state.cocoDataset")
+SLY_SELECTED_CONTEXT = os.environ.get("modal.state.slySelectedContext")
 META = sly.ProjectMeta()
 
 INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
 
-if INPUT_DIR is not None or INPUT_FILE is not None:
+if SLY_SELECTED_CONTEXT != "ecosystem":
     COCO_MODE = "custom"
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
@@ -54,14 +55,15 @@ if COCO_MODE == "original":
 else:
     is_original = False
     custom_ds = None
-    files = os.environ.get("modal.state.files")
-    if files is not None and files != "":
-        sly.logger.info(f"Trying to find files in uploaded files: {files}")
-        ext = sly.fs.get_file_ext(files.rstrip("/"))
-        if ext in [".tar", ".zip"]:
-            INPUT_FILE = files
-        else:
-            INPUT_DIR = files
+    if SLY_SELECTED_CONTEXT != "ecosystem":
+        files = os.environ.get("modal.state.files")
+        if files is not None and files != "":
+            sly.logger.info(f"Trying to find files in uploaded files: {files}")
+            ext = sly.fs.get_file_ext(files.rstrip("/"))
+            if ext in [".tar", ".zip"]:
+                INPUT_FILE = files
+            else:
+                INPUT_DIR = files
 
     if INPUT_DIR:
         listdir = api.file.listdir(TEAM_ID, INPUT_DIR)
