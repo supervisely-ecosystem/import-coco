@@ -55,7 +55,7 @@ if COCO_MODE == "original":
 else:
     is_original = False
     custom_ds = None
-    if SLY_SELECTED_CONTEXT != "ecosystem":
+    if SLY_SELECTED_CONTEXT == "ecosystem":
         files = os.environ.get("modal.state.files")
         if files is not None and files != "":
             sly.logger.info(f"Trying to find files in uploaded files: {files}")
