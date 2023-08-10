@@ -55,7 +55,7 @@ else:
     is_original = False
     custom_ds = None
     files = os.environ.get("modal.state.files")
-    if files is not None:
+    if files is not None and files != "":
         sly.logger.info(f"Trying to find files in uploaded files: {files}")
         ext = sly.fs.get_file_ext(files.rstrip("/"))
         if ext in [".tar", ".zip"]:
