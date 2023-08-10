@@ -1,4 +1,4 @@
-<div v-if="!state.slyFolder && !state.slyFile">
+<div v-if="state.slySelectedContext === 'ecosystem'">
     <div>
         <sly-field>
             <el-tabs type="border-card" class="el-tabs-cards" v-model="state.cocoDataset">
