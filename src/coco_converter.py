@@ -1,3 +1,4 @@
+import glob
 import os
 import shutil
 
@@ -185,13 +186,21 @@ def move_testds_to_sly_dataset(dataset):
 def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
     if is_original:
         ann_path = os.path.join(ann_dir, f"instances_{dataset_name}.json")
+        return bool(os.path.exists(ann_path) and os.path.isfile(ann_path))
     else:
-        ann_path = os.path.join(ann_dir, "instances.json")
-    return bool(os.path.exists(ann_path) and os.path.isfile(ann_path))
-
+        ann_files = glob.glob(os.path.join(ann_dir, "*.json"))
+        if len(ann_files) == 1:
+            return True
+        elif len(ann_files) > 1:
+            sly.logger.warn(f"Found more than one .json file in the {ann_dir} directory")
+        elif len(ann_files) == 0:
+            sly.logger.info(f"Annotation file not found in {ann_dir}")
+        return False
+        
 
 def get_ann_path(ann_dir, dataset_name, is_original):
     if is_original:
         return os.path.join(ann_dir, f"instances_{dataset_name}.json")
     else:
-        return os.path.join(ann_dir, "instances.json")
+        ann_files = glob.glob(os.path.join(ann_dir, "*.json"))
+        return ann_files[0]

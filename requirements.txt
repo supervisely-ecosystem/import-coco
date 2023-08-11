@@ -1,2 +1,2 @@
-supervisely==6.72.55
+supervisely==6.72.97
 pycocotools==2.0.6  # to convert RLE masks

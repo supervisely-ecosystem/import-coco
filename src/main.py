@@ -71,9 +71,8 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 )
                 ds_progress.iter_done_report()
         else:
-            sly_dataset_dir = coco_converter.create_sly_dataset_dir(
-                dataset_name=dataset
-            )
+            coco_converter.get_sly_meta_from_coco(coco_categories=[], dataset_name=dataset)
+            sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
             g.src_img_dir = os.path.join(g.COCO_BASE_DIR, dataset, "images")
             g.dst_img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")

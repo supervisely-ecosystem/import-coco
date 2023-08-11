@@ -21,13 +21,19 @@ def str_to_list(data):
     data = [n.strip() for n in data]
     return data
 
-
 TASK_ID = os.environ["TASK_ID"]
 TEAM_ID = int(os.environ["context.teamId"])
 WORKSPACE_ID = int(os.environ["context.workspaceId"])
 
-COCO_MODE = os.environ["modal.state.cocoDataset"]
+COCO_MODE = os.environ.get("modal.state.cocoDataset")
+SLY_SELECTED_CONTEXT = os.environ.get("modal.state.slySelectedContext")
 META = sly.ProjectMeta()
+
+INPUT_DIR = os.environ.get("modal.state.slyFolder")
+INPUT_FILE = os.environ.get("modal.state.slyFile")
+
+if SLY_SELECTED_CONTEXT != "ecosystem":
+    COCO_MODE = "custom"
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
@@ -48,7 +54,41 @@ if COCO_MODE == "original":
     original_ds = str_to_list(os.environ["modal.state.originalDataset"])
 else:
     is_original = False
-    custom_ds = os.environ["modal.state.customDataset"]
+    custom_ds = None
+    if SLY_SELECTED_CONTEXT == "ecosystem":
+        files = os.environ.get("modal.state.files")
+        if files is not None and files != "":
+            sly.logger.info(f"Trying to find files in uploaded files: {files}")
+            ext = sly.fs.get_file_ext(files.rstrip("/"))
+            if ext in [".tar", ".zip"]:
+                INPUT_FILE = files
+            else:
+                INPUT_DIR = files
+
+    if INPUT_DIR:
+        listdir = api.file.listdir(TEAM_ID, INPUT_DIR)
+        if len(listdir) == 1 and sly.fs.get_file_ext(listdir[0]) in [".zip", ".tar"]:
+            sly.logger.warn("Folder mode is selected, but archive file is uploaded.")
+            sly.logger.info("Switching to file mode.")
+            INPUT_DIR, INPUT_FILE = None, os.path.join(INPUT_DIR, listdir[0])
+    elif INPUT_FILE:
+        if sly.fs.get_file_ext(INPUT_FILE) not in [".zip", ".tar"]:
+            parent_dir, _ = os.path.split(INPUT_FILE)
+            if os.path.basename(parent_dir) in ["images", "annotations"]:
+                parent_dir = os.path.dirname(os.path.dirname(parent_dir))
+            elif ["images", "annotations"] in api.file.listdir(TEAM_ID, parent_dir):
+                parent_dir = os.path.dirname(parent_dir)
+            if not parent_dir.endswith("/"):
+                parent_dir += "/"
+            INPUT_DIR, INPUT_FILE = parent_dir, None
+
+    if INPUT_DIR:
+        custom_ds = INPUT_DIR
+        sly.logger.info(f"INPUT_DIR: {custom_ds}")
+    elif INPUT_FILE:
+        custom_ds = INPUT_FILE
+        sly.logger.info(f"INPUT_FILE: {custom_ds}")
+    
 
 images_links = {
     "train2014": "http://images.cocodataset.org/zips/train2014.zip",

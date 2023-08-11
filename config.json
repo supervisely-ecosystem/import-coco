@@ -6,8 +6,9 @@
         "images"
     ],
     "description": "Converts COCO format to Supervisely",
-    "docker_image": "supervisely/import-export:0.0.5",
+    "docker_image": "supervisely/import-export:6.72.97",
     "main_script": "src/main.py",
+    "min_instance_version": "6.8.17",
     "modal_template": "src/modal.html",
     "modal_template_state": {
         "originalDataset": [
@@ -15,7 +16,16 @@
             "val2017"
         ],
         "cocoDataset": "original",
-        "projectName": ""
+        "projectName": "",
+        "isDragMode": "Drag & drop",
+        "files": ""
+    },
+    "context_menu": {
+        "target": [
+            "ecosystem",
+            "files_folder",
+            "files_file"
+        ]
     },
     "task_location": "workspace_tasks",
     "isolate": true,
