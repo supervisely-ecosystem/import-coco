@@ -192,9 +192,9 @@ def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
         if len(ann_files) == 1:
             return True
         elif len(ann_files) > 1:
-            sly.logger.warn(f"Found more than one .json file in the {ann_dir} directory")
+            sly.logger.warn(f"Found more than one .json annotation file in the {ann_dir} directory. Please, read apps overview and prepare the dataset correctly.")
         elif len(ann_files) == 0:
-            sly.logger.info(f"Annotation file not found in {ann_dir}")
+            sly.logger.info(f"Annotation file not found in {ann_dir}. Please, read apps overview and prepare the dataset correctly.")
         return False
         
 
