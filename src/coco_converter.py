@@ -129,7 +129,7 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                 labels.append(label)
 
         bbox = object.get("bbox")
-        if bbox is not None:
+        if bbox is not None and len(bbox) >= 4:
             xmin = bbox[0]
             ymin = bbox[1]
             xmax = xmin + bbox[2]
