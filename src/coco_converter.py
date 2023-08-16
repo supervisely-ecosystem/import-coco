@@ -83,8 +83,12 @@ def coco_category_to_class_name(coco_categories):
 
 
 def convert_polygon_vertices(coco_ann):
-    for polygons in coco_ann["segmentation"]:
-        exterior = polygons
+    polygons = coco_ann["segmentation"]
+    if all(type(coord) is float for coord in polygons):
+        polygons = [polygons]
+
+    for polygon in polygons:
+        exterior = polygon
         exterior = [exterior[i * 2 : (i + 1) * 2] for i in range((len(exterior) + 2 - 1) // 2)]
         exterior = [sly.PointLocation(height, width) for width, height in exterior]
         return sly.Polygon(exterior, [])
