@@ -87,11 +87,13 @@ def convert_polygon_vertices(coco_ann):
     if all(type(coord) is float for coord in polygons):
         polygons = [polygons]
 
+    figures = []
     for polygon in polygons:
         exterior = polygon
         exterior = [exterior[i * 2 : (i + 1) * 2] for i in range((len(exterior) + 2 - 1) // 2)]
         exterior = [sly.PointLocation(height, width) for width, height in exterior]
-        return sly.Polygon(exterior, [])
+        figures.append(sly.Polygon(exterior, []))
+    return figures
 
 
 def convert_rle_mask_to_polygon(coco_ann):
@@ -128,9 +130,8 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                     label = sly.Label(figure, obj_class_polygon)
                     labels.append(label)
             elif type(segm) is list and object["segmentation"]:
-                figure = convert_polygon_vertices(object)
-                label = sly.Label(figure, obj_class_polygon)
-                labels.append(label)
+                figures = convert_polygon_vertices(object)
+                labels.extend([sly.Label(figure, obj_class_polygon) for figure in figures])
 
         bbox = object.get("bbox")
         if bbox is not None and len(bbox) >= 4:
