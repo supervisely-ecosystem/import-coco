@@ -1,6 +1,9 @@
 import glob
 import os
 import shutil
+import cv2
+from copy import deepcopy
+from collections import defaultdict
 
 import numpy as np
 import pycocotools.mask as mask_util
@@ -82,17 +85,43 @@ def coco_category_to_class_name(coco_categories):
     return {category["id"]: category["name"] for category in coco_categories}
 
 
-def convert_polygon_vertices(coco_ann):
+def convert_polygon_vertices(coco_ann, image_size):
     polygons = coco_ann["segmentation"]
     if all(type(coord) is float for coord in polygons):
         polygons = [polygons]
 
-    figures = []
+    exteriors = []
     for polygon in polygons:
-        exterior = polygon
-        exterior = [exterior[i * 2 : (i + 1) * 2] for i in range((len(exterior) + 2 - 1) // 2)]
-        exterior = [sly.PointLocation(height, width) for width, height in exterior]
-        figures.append(sly.Polygon(exterior, []))
+        polygon = [polygon[i * 2 : (i + 1) * 2] for i in range((len(polygon) + 2 - 1) // 2)]
+        exteriors.append([(width, height) for width, height in polygon])
+    
+    interiors = {idx: [] for idx in range(len(exteriors))}
+    id2del = []
+    for idx, exterior in enumerate(exteriors):
+        temp_img = np.zeros(image_size + (3,), dtype=np.uint8)
+        geom = sly.Polygon([sly.PointLocation(y, x) for x, y in exterior])
+        geom.draw_contour(temp_img, color=[255, 255, 255])
+        im = cv2.cvtColor(temp_img, cv2.COLOR_RGB2GRAY)
+        contours, _  = cv2.findContours(im, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        for idy, exterior2 in enumerate(exteriors):
+            if idx == idy or idy in id2del:
+                continue
+            results = [cv2.pointPolygonTest(contours[0], (x,y), False) > 0 for x,y in exterior2]
+            # if results of True, then all points are inside or on contour
+            if all(results):
+                interiors[idx].append(deepcopy(exteriors[idy]))
+                id2del.append(idy)
+
+    # remove contours from exteriors that are inside other contours
+    for j in sorted(id2del, reverse=True):
+        del exteriors[j]
+
+    figures = []
+    for exterior, interior in zip(exteriors, interiors.values()):
+        exterior = [sly.PointLocation(y, x) for x,y in exterior]
+        interior = [[sly.PointLocation(y, x) for x,y in points] for points in interior]
+        figures.append(sly.Polygon(exterior, interior))
+
     return figures
 
 
@@ -130,7 +159,7 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                     label = sly.Label(figure, obj_class_polygon)
                     labels.append(label)
             elif type(segm) is list and object["segmentation"]:
-                figures = convert_polygon_vertices(object)
+                figures = convert_polygon_vertices(object, image_size)
                 labels.extend([sly.Label(figure, obj_class_polygon) for figure in figures])
 
         bbox = object.get("bbox")
