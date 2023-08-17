@@ -15,24 +15,26 @@ from typing import List
 
 import globals as g
 
-def add_tail(body:str, tail:str):
-    if ' ' in body:
+
+def add_tail(body: str, tail: str):
+    if " " in body:
         return f"{body} {tail}"
     return f"{body}_{tail}"
-    
+
 
 def get_ann_types(coco: COCO) -> List[str]:
     ann_types = []
 
-    sly.logger.info('Getting info about annotation types..')
+    sly.logger.info("Getting info about annotation types..")
 
     annotation_ids = coco.getAnnIds()
-    if any('bbox' in coco.anns[ann_id] for ann_id in annotation_ids):
-        ann_types.append('bbox')
-    if any('segmentation' in coco.anns[ann_id] for ann_id in annotation_ids):
-        ann_types.append('segmentation')
+    if any("bbox" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("bbox")
+    if any("segmentation" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("segmentation")
 
     return ann_types
+
 
 def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
     colors = []
@@ -45,19 +47,15 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
         obj_classes = []
 
         if ann_types is not None:
-            if 'segmentation' in ann_types:
+            if "segmentation" in ann_types:
+                obj_classes.append(sly.ObjClass(category["name"], sly.Polygon, new_color))
+            if "bbox" in ann_types:
                 obj_classes.append(
-                    sly.ObjClass(category['name'], sly.Polygon, new_color)
-                )
-            if 'bbox' in ann_types:
-                obj_classes.append(
-                    sly.ObjClass(add_tail(category['name'], "bbox"), sly.Rectangle, new_color)
+                    sly.ObjClass(add_tail(category["name"], "bbox"), sly.Rectangle, new_color)
                 )
 
         g.META = g.META.add_obj_classes(obj_classes)
     return g.META
-
-
 
 
 def get_sly_meta_from_coco(coco_categories, dataset_name, ann_types=None):
@@ -94,7 +92,7 @@ def convert_polygon_vertices(coco_ann, image_size):
     for polygon in polygons:
         polygon = [polygon[i * 2 : (i + 1) * 2] for i in range((len(polygon) + 2 - 1) // 2)]
         exteriors.append([(width, height) for width, height in polygon])
-    
+
     interiors = {idx: [] for idx in range(len(exteriors))}
     id2del = []
     for idx, exterior in enumerate(exteriors):
@@ -102,11 +100,11 @@ def convert_polygon_vertices(coco_ann, image_size):
         geom = sly.Polygon([sly.PointLocation(y, x) for x, y in exterior])
         geom.draw_contour(temp_img, color=[255, 255, 255])
         im = cv2.cvtColor(temp_img, cv2.COLOR_RGB2GRAY)
-        contours, _  = cv2.findContours(im, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(im, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         for idy, exterior2 in enumerate(exteriors):
             if idx == idy or idy in id2del:
                 continue
-            results = [cv2.pointPolygonTest(contours[0], (x,y), False) > 0 for x,y in exterior2]
+            results = [cv2.pointPolygonTest(contours[0], (x, y), False) > 0 for x, y in exterior2]
             # if results of True, then all points are inside or on contour
             if all(results):
                 interiors[idx].append(deepcopy(exteriors[idy]))
@@ -118,8 +116,8 @@ def convert_polygon_vertices(coco_ann, image_size):
 
     figures = []
     for exterior, interior in zip(exteriors, interiors.values()):
-        exterior = [sly.PointLocation(y, x) for x,y in exterior]
-        interior = [[sly.PointLocation(y, x) for x,y in points] for points in interior]
+        exterior = [sly.PointLocation(y, x) for x, y in exterior]
+        interior = [[sly.PointLocation(y, x) for x, y in points] for points in interior]
         figures.append(sly.Polygon(exterior, interior))
 
     return figures
@@ -227,11 +225,15 @@ def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
         if len(ann_files) == 1:
             return True
         elif len(ann_files) > 1:
-            sly.logger.warn(f"Found more than one .json annotation file in the {ann_dir} directory. Please, read apps overview and prepare the dataset correctly.")
+            sly.logger.warn(
+                f"Found more than one .json annotation file in the {ann_dir} directory. Please, read apps overview and prepare the dataset correctly."
+            )
         elif len(ann_files) == 0:
-            sly.logger.info(f"Annotation file not found in {ann_dir}. Please, read apps overview and prepare the dataset correctly.")
+            sly.logger.info(
+                f"Annotation file not found in {ann_dir}. Please, read apps overview and prepare the dataset correctly."
+            )
         return False
-        
+
 
 def get_ann_path(ann_dir, dataset_name, is_original):
     if is_original:
