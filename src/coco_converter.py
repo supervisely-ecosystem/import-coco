@@ -148,6 +148,7 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
         name_cat_id_map = coco_category_to_class_name(coco_categories)
 
         segm = object.get("segmentation")
+        curr_labels = []
         if segm is not None:
             obj_class_name_polygon = name_cat_id_map[object["category_id"]]
             obj_class_polygon = meta.get_obj_class(obj_class_name_polygon)
@@ -157,24 +158,24 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                 for polygon in polygons:
                     figure = polygon
                     label = sly.Label(figure, obj_class_polygon)
-                    labels.append(label)
+                    curr_labels.append(label)
             elif type(segm) is list and object["segmentation"]:
                 figures = convert_polygon_vertices(object, image_size)
-                labels.extend([sly.Label(figure, obj_class_polygon) for figure in figures])
+                curr_labels.extend([sly.Label(figure, obj_class_polygon) for figure in figures])
 
+        labels.extend(curr_labels)
         bbox = object.get("bbox")
-        if bbox is not None and len(bbox) >= 4:
-            xmin = bbox[0]
-            ymin = bbox[1]
-            xmax = xmin + bbox[2]
-            ymax = ymin + bbox[3]
-
-            obj_class_name_rectangle = add_tail( name_cat_id_map[object["category_id"]], "bbox")
+        if bbox is not None and len(bbox) == 4:
+            obj_class_name_rectangle = add_tail(name_cat_id_map[object["category_id"]], "bbox")
             obj_class_rectangle = meta.get_obj_class(obj_class_name_rectangle)
-            rectangle = sly.Label(
-                sly.Rectangle(top=ymin, left=xmin, bottom=ymax, right=xmax), obj_class_rectangle
-            )
-            labels.append(rectangle)
+            if len(curr_labels) > 1:
+                for label in curr_labels:
+                    rectangles = label.convert(obj_class_rectangle)
+                    labels.extend([sly.Label(rect, obj_class_rectangle) for rect in rectangles])
+            else:
+                x, y, w, h = bbox
+                rectangle = sly.Label(sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle)
+                labels.append(rectangle)
     return sly.Annotation(image_size, labels)
 
 
