@@ -1,6 +1,8 @@
 import glob
 import os
 import shutil
+import cv2
+from copy import deepcopy
 
 import numpy as np
 import pycocotools.mask as mask_util
@@ -12,24 +14,26 @@ from typing import List
 
 import globals as g
 
-def add_tail(body:str, tail:str):
-    if ' ' in body:
+
+def add_tail(body: str, tail: str):
+    if " " in body:
         return f"{body} {tail}"
     return f"{body}_{tail}"
-    
+
 
 def get_ann_types(coco: COCO) -> List[str]:
     ann_types = []
 
-    sly.logger.info('Getting info about annotation types..')
+    sly.logger.info("Getting info about annotation types..")
 
     annotation_ids = coco.getAnnIds()
-    if any('bbox' in coco.anns[ann_id] for ann_id in annotation_ids):
-        ann_types.append('bbox')
-    if any('segmentation' in coco.anns[ann_id] for ann_id in annotation_ids):
-        ann_types.append('segmentation')
+    if any("bbox" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("bbox")
+    if any("segmentation" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("segmentation")
 
     return ann_types
+
 
 def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
     colors = []
@@ -42,19 +46,15 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
         obj_classes = []
 
         if ann_types is not None:
-            if 'segmentation' in ann_types:
+            if "segmentation" in ann_types:
+                obj_classes.append(sly.ObjClass(category["name"], sly.Polygon, new_color))
+            if "bbox" in ann_types:
                 obj_classes.append(
-                    sly.ObjClass(category['name'], sly.Polygon, new_color)
-                )
-            if 'bbox' in ann_types:
-                obj_classes.append(
-                    sly.ObjClass(add_tail(category['name'], "bbox"), sly.Rectangle, new_color)
+                    sly.ObjClass(add_tail(category["name"], "bbox"), sly.Rectangle, new_color)
                 )
 
         g.META = g.META.add_obj_classes(obj_classes)
     return g.META
-
-
 
 
 def get_sly_meta_from_coco(coco_categories, dataset_name, ann_types=None):
@@ -82,12 +82,44 @@ def coco_category_to_class_name(coco_categories):
     return {category["id"]: category["name"] for category in coco_categories}
 
 
-def convert_polygon_vertices(coco_ann):
-    for polygons in coco_ann["segmentation"]:
-        exterior = polygons
-        exterior = [exterior[i * 2 : (i + 1) * 2] for i in range((len(exterior) + 2 - 1) // 2)]
-        exterior = [sly.PointLocation(height, width) for width, height in exterior]
-        return sly.Polygon(exterior, [])
+def convert_polygon_vertices(coco_ann, image_size):
+    polygons = coco_ann["segmentation"]
+    if all(type(coord) is float for coord in polygons):
+        polygons = [polygons]
+
+    exteriors = []
+    for polygon in polygons:
+        polygon = [polygon[i * 2 : (i + 1) * 2] for i in range((len(polygon) + 2 - 1) // 2)]
+        exteriors.append([(width, height) for width, height in polygon])
+
+    interiors = {idx: [] for idx in range(len(exteriors))}
+    id2del = []
+    for idx, exterior in enumerate(exteriors):
+        temp_img = np.zeros(image_size + (3,), dtype=np.uint8)
+        geom = sly.Polygon([sly.PointLocation(y, x) for x, y in exterior])
+        geom.draw_contour(temp_img, color=[255, 255, 255])
+        im = cv2.cvtColor(temp_img, cv2.COLOR_RGB2GRAY)
+        contours, _ = cv2.findContours(im, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        for idy, exterior2 in enumerate(exteriors):
+            if idx == idy or idy in id2del:
+                continue
+            results = [cv2.pointPolygonTest(contours[0], (x, y), False) > 0 for x, y in exterior2]
+            # if results of True, then all points are inside or on contour
+            if all(results):
+                interiors[idx].append(deepcopy(exteriors[idy]))
+                id2del.append(idy)
+
+    # remove contours from exteriors that are inside other contours
+    for j in sorted(id2del, reverse=True):
+        del exteriors[j]
+
+    figures = []
+    for exterior, interior in zip(exteriors, interiors.values()):
+        exterior = [sly.PointLocation(y, x) for x, y in exterior]
+        interior = [[sly.PointLocation(y, x) for x, y in points] for points in interior]
+        figures.append(sly.Polygon(exterior, interior))
+
+    return figures
 
 
 def convert_rle_mask_to_polygon(coco_ann):
@@ -113,6 +145,7 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
         name_cat_id_map = coco_category_to_class_name(coco_categories)
 
         segm = object.get("segmentation")
+        curr_labels = []
         if segm is not None:
             obj_class_name_polygon = name_cat_id_map[object["category_id"]]
             obj_class_polygon = meta.get_obj_class(obj_class_name_polygon)
@@ -122,25 +155,24 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                 for polygon in polygons:
                     figure = polygon
                     label = sly.Label(figure, obj_class_polygon)
-                    labels.append(label)
+                    curr_labels.append(label)
             elif type(segm) is list and object["segmentation"]:
-                figure = convert_polygon_vertices(object)
-                label = sly.Label(figure, obj_class_polygon)
-                labels.append(label)
+                figures = convert_polygon_vertices(object, image_size)
+                curr_labels.extend([sly.Label(figure, obj_class_polygon) for figure in figures])
 
+        labels.extend(curr_labels)
         bbox = object.get("bbox")
-        if bbox is not None and len(bbox) >= 4:
-            xmin = bbox[0]
-            ymin = bbox[1]
-            xmax = xmin + bbox[2]
-            ymax = ymin + bbox[3]
-
-            obj_class_name_rectangle = add_tail( name_cat_id_map[object["category_id"]], "bbox")
+        if bbox is not None and len(bbox) == 4:
+            obj_class_name_rectangle = add_tail(name_cat_id_map[object["category_id"]], "bbox")
             obj_class_rectangle = meta.get_obj_class(obj_class_name_rectangle)
-            rectangle = sly.Label(
-                sly.Rectangle(top=ymin, left=xmin, bottom=ymax, right=xmax), obj_class_rectangle
-            )
-            labels.append(rectangle)
+            if len(curr_labels) > 1:
+                for label in curr_labels:
+                    bbox = label.geometry.to_bbox()
+                    labels.append(sly.Label(bbox, obj_class_rectangle))
+            else:
+                x, y, w, h = bbox
+                rectangle = sly.Label(sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle)
+                labels.append(rectangle)
     return sly.Annotation(image_size, labels)
 
 
@@ -192,11 +224,15 @@ def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
         if len(ann_files) == 1:
             return True
         elif len(ann_files) > 1:
-            sly.logger.warn(f"Found more than one .json annotation file in the {ann_dir} directory. Please, read apps overview and prepare the dataset correctly.")
+            sly.logger.warn(
+                f"Found more than one .json annotation file in the {ann_dir} directory. Please, read apps overview and prepare the dataset correctly."
+            )
         elif len(ann_files) == 0:
-            sly.logger.info(f"Annotation file not found in {ann_dir}. Please, read apps overview and prepare the dataset correctly.")
+            sly.logger.info(
+                f"Annotation file not found in {ann_dir}. Please, read apps overview and prepare the dataset correctly."
+            )
         return False
-        
+
 
 def get_ann_path(ann_dir, dataset_name, is_original):
     if is_original:
