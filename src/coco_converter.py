@@ -3,7 +3,6 @@ import os
 import shutil
 import cv2
 from copy import deepcopy
-from collections import defaultdict
 
 import numpy as np
 import pycocotools.mask as mask_util
