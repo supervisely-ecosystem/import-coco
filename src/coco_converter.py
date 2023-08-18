@@ -167,8 +167,8 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
             obj_class_rectangle = meta.get_obj_class(obj_class_name_rectangle)
             if len(curr_labels) > 1:
                 for label in curr_labels:
-                    rectangles = label.convert(obj_class_rectangle)
-                    labels.extend([sly.Label(rect, obj_class_rectangle) for rect in rectangles])
+                    bbox = label.geometry.to_bbox()
+                    labels.append(sly.Label(bbox, obj_class_rectangle))
             else:
                 x, y, w, h = bbox
                 rectangle = sly.Label(sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle)
