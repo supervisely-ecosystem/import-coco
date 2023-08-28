@@ -141,12 +141,12 @@ def convert_rle_mask_to_polygon(coco_ann):
 
 def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_size):
     labels = []
+    name_cat_id_map = coco_category_to_class_name(coco_categories)
     for object in coco_ann:
-        name_cat_id_map = coco_category_to_class_name(coco_categories)
 
         segm = object.get("segmentation")
         curr_labels = []
-        if segm is not None:
+        if segm is not None and len(segm) > 0:
             obj_class_name_polygon = name_cat_id_map[object["category_id"]]
             obj_class_polygon = meta.get_obj_class(obj_class_name_polygon)
 
@@ -163,7 +163,9 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
         labels.extend(curr_labels)
         bbox = object.get("bbox")
         if bbox is not None and len(bbox) == 4:
-            obj_class_name_rectangle = add_tail(name_cat_id_map[object["category_id"]], "bbox")
+            obj_class_name_rectangle = name_cat_id_map[object["category_id"]]
+            if not obj_class_name_rectangle.endswith("bbox"):
+                obj_class_name_rectangle = add_tail(obj_class_name_rectangle, "bbox")
             obj_class_rectangle = meta.get_obj_class(obj_class_name_rectangle)
             if len(curr_labels) > 1:
                 for label in curr_labels:
@@ -188,11 +190,13 @@ def create_sly_dataset_dir(dataset_name):
 
 def move_trainvalds_to_sly_dataset(dataset, coco_image, ann):
     image_name = coco_image["file_name"]
+    if "/" in image_name:
+        image_name = os.path.basename(image_name)
     ann_json = ann.to_json()
-    sly.json.dump_json_file(ann_json, os.path.join(g.ann_dir, f"{image_name}.json"))
     coco_img_path = os.path.join(g.COCO_BASE_DIR, dataset, "images", image_name)
     sly_img_path = os.path.join(g.img_dir, image_name)
     if file_exists(os.path.join(coco_img_path)):
+        sly.json.dump_json_file(ann_json, os.path.join(g.ann_dir, f"{image_name}.json"))
         shutil.move(coco_img_path, sly_img_path)
 
 
