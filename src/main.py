@@ -34,7 +34,10 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 ann_dir=coco_ann_dir, dataset_name=dataset, is_original=g.is_original
             )
 
-            coco = COCO(annotation_file=coco_ann_path)
+            try:
+                coco = COCO(annotation_file=coco_ann_path)
+            except Exception as e:
+                raise Exception(f"Failed to load annotations from {coco_ann_path}. {e}")
             categories = coco.loadCats(ids=coco.getCatIds())
             coco_images = coco.imgs
             coco_anns = coco.imgToAnns
