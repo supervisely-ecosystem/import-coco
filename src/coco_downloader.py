@@ -107,39 +107,6 @@ def download_file_from_supervisely(
 
 
 def download_custom_coco_dataset(remote_path: str, app_logger):
-    available_archive_formats = list(zip(*shutil.get_archive_formats()))[0]
-    file_ext = sly.fs.get_file_ext(remote_path)
-    if g.INPUT_FILE:
-        if file_ext.lstrip(".") in available_archive_formats:
-            app_logger.info(f"INPUT_FILE is an archive: {remote_path}")
-        elif file_ext in sly.image.SUPPORTED_IMG_EXTS + [".json"]:
-            app_logger.info(f"INPUT_FILE is not an archive: {remote_path}")
-            dir_path = dirname(normpath(remote_path))
-            if basename(normpath(dir_path)) in ["images", "annotations"]:
-                dir_path = dirname(dirname(dir_path))
-            listdir = g.api.file.listdir(g.TEAM_ID, dir_path)
-            if ["images", "annotations"] in [basename(normpath(x)) for x in listdir]:
-                dir_path = dirname(dir_path)
-            app_logger.info(f"Switching to folder mode. INPUT_DIR: {dir_path}")
-            g.INPUT_FILE, g.INPUT_DIR = None, dir_path
-            app_logger.info(f"Switching to folder mode. INPUT_DIR: {dir_path}")
-        else:
-            raise ValueError(
-                "Incorrect project structure. "
-                f"File mode is chosen, but file {remote_path} is not an archive. "
-                "Please, read apps overview and prepare the dataset correctly."
-            )
-    elif g.INPUT_DIR:
-        listdir = g.api.file.listdir(g.TEAM_ID, remote_path)
-        if sly.fs.get_file_ext(listdir[0]).lstrip(".") in available_archive_formats:
-            g.INPUT_DIR, g.INPUT_FILE = None, os.path.join(remote_path, listdir[0])
-            app_logger.info(f"Switching to file mode. INPUT_FILE: {g.INPUT_FILE}")
-        elif any(basename(normpath(x)) in ["images", "annotations"] for x in listdir):
-            g.INPUT_DIR = dirname(normpath(remote_path))
-            app_logger.info(f"INPUT_DIR: {g.INPUT_DIR}")
-        elif basename(normpath(remote_path)) in ["images", "annotations"]:
-            g.INPUT_DIR = dirname(dirname(normpath(remote_path)))
-            app_logger.info(f"INPUT_DIR: {g.INPUT_DIR}")
 
     if g.INPUT_FILE:
         if not g.api.file.exists(g.TEAM_ID, g.INPUT_FILE):
@@ -152,10 +119,17 @@ def download_custom_coco_dataset(remote_path: str, app_logger):
         app_logger.info("Unpacking archive...")
         sly.fs.unpack_archive(archive_path, g.COCO_BASE_DIR)
         silent_remove(archive_path)
+        coco_listdir = os.listdir(g.COCO_BASE_DIR)
         assert len(os.listdir(g.COCO_BASE_DIR)) == 1, \
             "ERROR: Archive must contain only 1 project folder with datasets in COCO format."
         app_logger.info("Archive has been unpacked.")
-        g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, os.listdir(g.COCO_BASE_DIR)[0])
+        g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, coco_listdir[0])
+
+        coco_listdir = os.listdir(g.COCO_BASE_DIR)
+        if any(basename(normpath(x)) in ["images", "annotations"] for x in coco_listdir):
+            g.COCO_BASE_DIR = dirname(normpath(g.COCO_BASE_DIR))
+            sly.logger.info(f"COCO_BASE_DIR: {g.COCO_BASE_DIR}")
+
     elif g.INPUT_DIR:
         if not g.api.file.dir_exists(g.TEAM_ID, g.INPUT_DIR):
             raise FileNotFoundError(f"Directory {g.INPUT_DIR} not found in Team Files")

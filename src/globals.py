@@ -1,10 +1,10 @@
 import ast
 import os
-import sys
+import shutil
 
 import supervisely as sly
 from supervisely.io.fs import mkdir
-from pathlib import Path
+from os.path import basename, dirname, normpath
 
 from dotenv import load_dotenv
 
@@ -71,16 +71,33 @@ else:
             sly.logger.warn("Folder mode is selected, but archive file is uploaded.")
             sly.logger.info("Switching to file mode.")
             INPUT_DIR, INPUT_FILE = None, os.path.join(INPUT_DIR, listdir[0])
+        elif any(basename(normpath(x)) in ["images", "annotations"] for x in listdir):
+            INPUT_DIR = dirname(normpath(INPUT_DIR))
+            sly.logger.info(f"INPUT_DIR: {INPUT_DIR}")
+        elif basename(normpath(INPUT_DIR)) in ["images", "annotations"]:
+            INPUT_DIR = dirname(dirname(normpath(INPUT_DIR)))
+            sly.logger.info(f"INPUT_DIR: {INPUT_DIR}")
     elif INPUT_FILE:
-        if sly.fs.get_file_ext(INPUT_FILE) not in [".zip", ".tar"]:
-            parent_dir, _ = os.path.split(INPUT_FILE)
-            if os.path.basename(parent_dir) in ["images", "annotations"]:
-                parent_dir = os.path.dirname(os.path.dirname(parent_dir))
-            elif ["images", "annotations"] in api.file.listdir(TEAM_ID, parent_dir):
-                parent_dir = os.path.dirname(parent_dir)
+        available_archive_formats = list(zip(*shutil.get_archive_formats()))[0]
+        file_ext = sly.fs.get_file_ext(INPUT_FILE)
+        if file_ext.lstrip(".") in available_archive_formats:
+            sly.logger.info(f"Input file is an {file_ext} archive")
+        elif file_ext in sly.image.SUPPORTED_IMG_EXTS + [".json"]:
+            parent_dir = dirname(normpath(INPUT_FILE))
+            listdir = api.file.listdir(TEAM_ID, parent_dir)
+            if basename(normpath(parent_dir)) in ["images", "annotations"]:
+                parent_dir = dirname(dirname(parent_dir))
+            elif ["images", "annotations"] in [basename(normpath(x)) for x in listdir]:
+                parent_dir = dirname(parent_dir)
             if not parent_dir.endswith("/"):
                 parent_dir += "/"
             INPUT_DIR, INPUT_FILE = parent_dir, None
+        else:
+            raise ValueError(
+                "Incorrect project structure. "
+                f"File mode is chosen, but file {INPUT_FILE} is not an archive. "
+                "Please, read apps overview and prepare the dataset correctly."
+            )
 
     if INPUT_DIR:
         custom_ds = INPUT_DIR
