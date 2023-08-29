@@ -72,9 +72,19 @@ else:
             sly.logger.info("Switching to file mode.")
             INPUT_DIR, INPUT_FILE = None, os.path.join(INPUT_DIR, listdir[0])
         elif any(basename(normpath(x)) in ["images", "annotations"] for x in listdir):
+            if dirname(normpath(INPUT_DIR)) == "/import/import-coco":
+                raise Exception(
+                    "Incorrect project structure. "
+                    "Please, read apps overview and prepare the dataset correctly."
+                )
             INPUT_DIR = dirname(normpath(INPUT_DIR))
             sly.logger.info(f"INPUT_DIR: {INPUT_DIR}")
         elif basename(normpath(INPUT_DIR)) in ["images", "annotations"]:
+            if dirname(dirname(normpath(INPUT_DIR))) == "/import/import-coco":
+                raise Exception(
+                    "Incorrect project structure. "
+                    "Please, read apps overview and prepare the dataset correctly."
+                )
             INPUT_DIR = dirname(dirname(normpath(INPUT_DIR)))
             sly.logger.info(f"INPUT_DIR: {INPUT_DIR}")
     elif INPUT_FILE:
@@ -93,7 +103,7 @@ else:
                 parent_dir += "/"
             INPUT_DIR, INPUT_FILE = parent_dir, None
         else:
-            raise ValueError(
+            raise Exception(
                 "Incorrect project structure. "
                 f"File mode is chosen, but file {INPUT_FILE} is not an archive. "
                 "Please, read apps overview and prepare the dataset correctly."
