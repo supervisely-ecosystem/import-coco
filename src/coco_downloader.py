@@ -117,7 +117,7 @@ def download_custom_coco_dataset(remote_path: str, app_logger):
             g.INPUT_FILE, archive_path, archive_name, f'Download "{archive_name}"', app_logger
         )
         app_logger.info("Unpacking archive...")
-        sly.fs.unpack_archive(archive_path, g.COCO_BASE_DIR)
+        sly.fs.unpack_archive(archive_path, g.COCO_BASE_DIR, remove_junk=True)
         silent_remove(archive_path)
         coco_listdir = os.listdir(g.COCO_BASE_DIR)
         assert len(os.listdir(g.COCO_BASE_DIR)) == 1, \
