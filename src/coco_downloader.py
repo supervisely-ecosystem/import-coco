@@ -164,7 +164,9 @@ def start(app_logger):
         sly.logger.debug(f"Found {len(project_dirs)} project directories: {project_dirs}")
         count = 0
         for project_dir in project_dirs:
-            projects[project_name + f" {count}"] = list(os.listdir(project_dir))
+            projects[project_name + f" {count}"] = [
+                os.path.join(project_dir, dataset_dir) for dataset_dir in os.listdir(project_dir)
+            ]
             count += 1
 
         sly.logger.debug(f"Prepared projects: {projects}")
