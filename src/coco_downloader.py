@@ -153,10 +153,13 @@ def start(app_logger):
             project_name = "Custom COCO"
         download_custom_coco_dataset(g.custom_ds, app_logger)
         project_dirs = list()
-        for coco_project_dir in sly.fs.dirs_filter(g.COCO_BASE_DIR, check_function):
+        for coco_dataset_dir in sly.fs.dirs_filter(g.COCO_BASE_DIR, check_function):
+            coco_project_dir = os.path.dirname(coco_dataset_dir)
             if coco_project_dir not in project_dirs:
                 sly.logger.debug(f"Found project directory: {coco_project_dir}")
                 project_dirs.append(coco_project_dir)
+            else:
+                sly.logger.debug(f"Project directory {coco_project_dir} already exists.")
 
         sly.logger.debug(f"Found {len(project_dirs)} project directories: {project_dirs}")
         count = 0
