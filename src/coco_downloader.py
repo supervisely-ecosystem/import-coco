@@ -132,8 +132,11 @@ def download_custom_coco_dataset(remote_path: str, app_logger):
     return list(os.listdir(g.COCO_BASE_DIR))
 
 
-def check_function(directory):
-    pass
+def check_function(directory) -> bool:
+    images_dir = os.path.join(directory, "images")
+    annotations_dir = os.path.join(directory, "annotations")
+
+    return os.path.isdir(images_dir) and os.path.isdir(annotations_dir)
 
 
 def start(app_logger):
