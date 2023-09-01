@@ -81,7 +81,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 coco_converter.move_testds_to_sly_dataset(dataset=dataset)
 
         sly.upload_project(
-            dir=g.SLY_BASE_DIR,
+            dir=os.path.dirname(dataset),
             api=api,
             workspace_id=g.WORKSPACE_ID,
             project_name=project_name,
