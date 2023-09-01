@@ -15,8 +15,9 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
     projects = coco_downloader.start(app_logger)
 
     for project_name, datasets in projects.items():
-        for dataset in datasets:
-            coco_dataset_dir = dataset
+        for dataset_dir in datasets:
+            coco_dataset_dir = dataset_dir
+            dataset = os.path.basename(os.path.normpath(dataset_dir))
             sly.logger.debug(f"Working with project {project_name}, dataset {dataset}")
             if not dir_exists(coco_dataset_dir):
                 app_logger.info(f"File {coco_dataset_dir} has been skipped.")
@@ -81,7 +82,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 coco_converter.move_testds_to_sly_dataset(dataset=dataset)
 
         sly.upload_project(
-            dir=os.path.dirname(dataset),
+            dir=os.path.dirname(sly_dataset_dir),
             api=api,
             workspace_id=g.WORKSPACE_ID,
             project_name=project_name,
