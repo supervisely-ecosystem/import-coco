@@ -14,6 +14,7 @@ import globals as g
 def import_coco(api: sly.Api, task_id, context, state, app_logger):
     project_name, coco_datasets = coco_downloader.start(app_logger)
     for dataset in coco_datasets:
+        sly.logger.info(f"Start processing {dataset} dataset...")
         coco_dataset_dir = os.path.join(g.COCO_BASE_DIR, dataset)
         if not dir_exists(coco_dataset_dir):
             app_logger.info(
@@ -80,6 +81,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             g.dst_img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
             coco_converter.move_testds_to_sly_dataset(dataset=dataset)
+        sly.logger.info(f"Dataset {dataset} has been successfully converted.")
 
     sly.upload_project(
         dir=g.SLY_BASE_DIR,
