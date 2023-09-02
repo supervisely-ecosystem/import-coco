@@ -100,6 +100,8 @@ def convert_polygon_vertices(coco_ann, image_size):
         geom.draw_contour(temp_img, color=[255, 255, 255])
         im = cv2.cvtColor(temp_img, cv2.COLOR_RGB2GRAY)
         contours, _ = cv2.findContours(im, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        if len(contours) == 0:
+            continue
         for idy, exterior2 in enumerate(exteriors):
             if idx == idy or idy in id2del:
                 continue
