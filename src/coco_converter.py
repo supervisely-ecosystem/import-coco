@@ -57,7 +57,7 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
                 )
 
         g.META = g.META.add_obj_classes(obj_classes)
-    if "caption" in ann_types:
+    if "caption" in ann_types and ann_types is not None:
         tag_metas.append(sly.TagMeta("caption", sly.TagValueType.ANY_STRING))
     g.META = g.META.add_tag_metas(tag_metas)
     return g.META
