@@ -55,7 +55,7 @@ def download_coco_annotations(dataset, archive_path, save_path, app_logger):
     )
     shutil.unpack_archive(archive_path, save_path, format="zip")
     for file in os.listdir(ann_dir):
-        if file != f"instances_{dataset}.json":
+        if file != f"instances_{dataset}.json" and file != f"captions_{dataset}.json":
             silent_remove(os.path.join(ann_dir, file))
     silent_remove(archive_path)
 
