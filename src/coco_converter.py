@@ -255,14 +255,14 @@ def get_ann_path(ann_dir, dataset_name, is_original):
 
         elif len(ann_files) > 1:
             if g.INCLUDE_CAPTIONS:
-                instances_ann = [ann_file for ann_file in ann_files if "instance" in ann_file]
-                captions_ann = [ann_file for ann_file in ann_files if "caption" in ann_file]
+                instances_anns = [ann_file for ann_file in ann_files if "instance" in ann_file]
+                captions_anns = [ann_file for ann_file in ann_files if "caption" in ann_file]
                 if (
-                    len(instances_ann) == 1
-                    and len(captions_ann) == 1
-                    and instances_ann[0] != captions_ann[0]
+                    len(instances_anns) == 1
+                    and len(captions_anns) == 1
+                    and instances_anns[0] != captions_anns[0]
                 ):
-                    instances_ann, captions_ann = instances_ann[0], captions_ann[0]
+                    instances_ann, captions_ann = instances_anns[0], captions_anns[0]
                 else:
                     instances_ann = captions_ann = None
                     sly.logger.warn(
