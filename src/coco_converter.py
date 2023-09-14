@@ -31,12 +31,15 @@ def get_ann_types(coco: COCO) -> List[str]:
         ann_types.append("bbox")
     if any("segmentation" in coco.anns[ann_id] for ann_id in annotation_ids):
         ann_types.append("segmentation")
+    if any("caption" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("caption")
 
     return ann_types
 
 
 def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
     colors = []
+    tag_metas = []
     for category in coco_categories:
         if category["name"] in [obj_class.name for obj_class in g.META.obj_classes]:
             continue
@@ -54,6 +57,9 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
                 )
 
         g.META = g.META.add_obj_classes(obj_classes)
+    if ann_types is not None and "caption" in ann_types:
+        tag_metas.append(sly.TagMeta("caption", sly.TagValueType.ANY_STRING))
+    g.META = g.META.add_tag_metas(tag_metas)
     return g.META
 
 
@@ -143,9 +149,9 @@ def convert_rle_mask_to_polygon(coco_ann):
 
 def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_size):
     labels = []
+    imag_tags = []
     name_cat_id_map = coco_category_to_class_name(coco_categories)
     for object in coco_ann:
-
         segm = object.get("segmentation")
         curr_labels = []
         if segm is not None and len(segm) > 0:
@@ -177,7 +183,12 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                 x, y, w, h = bbox
                 rectangle = sly.Label(sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle)
                 labels.append(rectangle)
-    return sly.Annotation(image_size, labels)
+
+        caption = object.get("caption")
+        if caption is not None:
+            imag_tags.append(sly.Tag(meta.get_tag_meta("caption"), caption))
+
+    return sly.Annotation(image_size, labels=labels, img_tags=imag_tags)
 
 
 def create_sly_dataset_dir(dataset_name):
@@ -221,28 +232,62 @@ def move_testds_to_sly_dataset(dataset):
         ds_progress.iter_done_report()
 
 
-def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
+def get_ann_path(ann_dir, dataset_name, is_original):
+    instances_ann, captions_ann = None, None
     if is_original:
-        ann_path = os.path.join(ann_dir, f"instances_{dataset_name}.json")
-        return bool(os.path.exists(ann_path) and os.path.isfile(ann_path))
+        instances_ann = os.path.join(ann_dir, f"instances_{dataset_name}.json")
+        if not (os.path.exists(instances_ann) and os.path.isfile(instances_ann)):
+            instances_ann = None
+        if g.INCLUDE_CAPTIONS:
+            captions_ann = os.path.join(ann_dir, f"captions_{dataset_name}.json")
+            if not (os.path.exists(captions_ann) and os.path.isfile(captions_ann)):
+                captions_ann = None
     else:
         ann_files = glob.glob(os.path.join(ann_dir, "*.json"))
         if len(ann_files) == 1:
-            return True
+            instances_ann, captions_ann = ann_files[0], None
+            if g.INCLUDE_CAPTIONS:
+                sly.logger.warn(
+                    "Import captions is enabled, but only one .json annotation file found. "
+                    "It will be used for instances. "
+                    "If you want to import captions, please, add captions annotation file."
+                )
+
         elif len(ann_files) > 1:
-            sly.logger.warn(
-                f"Found more than one .json annotation file in the {ann_dir} directory. Please, read apps overview and prepare the dataset correctly."
-            )
-        elif len(ann_files) == 0:
-            sly.logger.info(
-                f"Annotation file not found in {ann_dir}. Please, read apps overview and prepare the dataset correctly."
-            )
-        return False
-
-
-def get_ann_path(ann_dir, dataset_name, is_original):
-    if is_original:
-        return os.path.join(ann_dir, f"instances_{dataset_name}.json")
-    else:
-        ann_files = glob.glob(os.path.join(ann_dir, "*.json"))
-        return ann_files[0]
+            if g.INCLUDE_CAPTIONS:
+                instances_anns = [ann_file for ann_file in ann_files if "instance" in ann_file]
+                captions_anns = [ann_file for ann_file in ann_files if "caption" in ann_file]
+                if len(instances_anns) == 1:
+                    instances_ann = instances_anns[0]
+                if len(captions_anns) == 1:
+                    captions_ann = captions_anns[0]
+                if (
+                    instances_ann == captions_anns
+                    or len(captions_anns) == 0
+                    or len(instances_anns) == 0
+                ):
+                    instances_ann = ann_files[0]
+                    captions_ann = None
+                    sly.logger.warn(
+                        "Found more than one .json annotation file. "
+                        "Import captions option is enabled, but more than one .json annotation file found. "
+                        "It will be used for instances. "
+                        "If you want to import captions, please, specify captions annotation file name."
+                    )
+            else:
+                instances_anns = [ann_file for ann_file in ann_files if "instance" in ann_file]
+                sly.logger.warn(
+                    "Import captions is disabled, but more than one .json annotation file found."
+                )
+                if len(instances_anns) == 1:
+                    instances_ann = instances_anns[0]
+                    sly.logger.info(f"Instances annotation file found: {instances_ann}")
+                else:
+                    sly.logger.warn(
+                        "Cannot find instances annotation file. "
+                        "Please, specify instances and captions annotation file names (read app README).)"
+                    )
+    sly.logger.info(f"instances_ann: {instances_ann}")
+    if g.INCLUDE_CAPTIONS:
+        sly.logger.info(f"captions_ann: {captions_ann}")
+    return instances_ann, captions_ann

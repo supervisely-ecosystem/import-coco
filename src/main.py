@@ -1,6 +1,7 @@
 import os
 
 import supervisely as sly
+from collections import defaultdict
 from pycocotools.coco import COCO
 from supervisely.io.fs import dir_exists
 
@@ -17,9 +18,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         sly.logger.info(f"Start processing {dataset} dataset...")
         coco_dataset_dir = os.path.join(g.COCO_BASE_DIR, dataset)
         if not dir_exists(coco_dataset_dir):
-            app_logger.info(
-                f"File {coco_dataset_dir} has been skipped."
-            )
+            app_logger.info(f"File {coco_dataset_dir} has been skipped.")
             continue
         coco_ann_dir = os.path.join(coco_dataset_dir, "annotations")
         if not dir_exists(os.path.join(coco_dataset_dir, "images")):
@@ -28,28 +27,36 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             )
             continue
 
-        if coco_converter.check_dataset_for_annotation(
-            dataset_name=dataset, ann_dir=coco_ann_dir, is_original=g.is_original
-        ):
-            coco_ann_path = coco_converter.get_ann_path(
-                ann_dir=coco_ann_dir, dataset_name=dataset, is_original=g.is_original
-            )
+        coco_instances_ann_path, coco_captions_ann_path = coco_converter.get_ann_path(
+            ann_dir=coco_ann_dir, dataset_name=dataset, is_original=g.is_original
+        )
+        if coco_instances_ann_path is not None:
 
             try:
-                coco = COCO(annotation_file=coco_ann_path)
+                coco_instances = COCO(annotation_file=coco_instances_ann_path)
             except Exception as e:
-                raise Exception(f"Incorrect annotation file: {coco_ann_path}: {e}")
-            categories = coco.loadCats(ids=coco.getCatIds())
-            coco_images = coco.imgs
-            coco_anns = coco.imgToAnns
+                raise Exception(
+                    f"Incorrect instances annotation file: {coco_instances_ann_path}: {e}"
+                )
 
-            sly_dataset_dir = coco_converter.create_sly_dataset_dir(
-                dataset_name=dataset
-            )
+            categories = coco_instances.loadCats(ids=coco_instances.getCatIds())
+            coco_images = coco_instances.imgs
+            coco_anns = coco_instances.imgToAnns
+
+            types = coco_converter.get_ann_types(coco=coco_instances)
+
+            if coco_captions_ann_path is not None and sly.fs.file_exists(coco_captions_ann_path):
+                try:
+                    coco_captions = COCO(annotation_file=coco_captions_ann_path)
+                    types += coco_converter.get_ann_types(coco=coco_captions)
+                    for img_id, ann in coco_instances.imgToAnns.items():
+                        ann.extend(coco_captions.imgToAnns[img_id])
+                except:
+                    coco_captions = None
+
+            sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
             g.img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
-
-            types = coco_converter.get_ann_types(coco)
 
             meta = coco_converter.get_sly_meta_from_coco(
                 coco_categories=categories, dataset_name=dataset, ann_types=types
