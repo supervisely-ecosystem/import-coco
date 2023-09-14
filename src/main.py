@@ -45,7 +45,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
 
             types = coco_converter.get_ann_types(coco=coco_instances)
 
-            if coco_captions_ann_path is not None:
+            if coco_captions_ann_path is not None and sly.fs.file_exists(coco_captions_ann_path):
                 try:
                     coco_captions = COCO(annotation_file=coco_captions_ann_path)
                 except Exception as e:
