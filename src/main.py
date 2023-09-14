@@ -56,7 +56,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                     )
                 types += coco_converter.get_ann_types(coco=coco_captions)
                 for img_id, ann in coco_instances.imgToAnns.items():
-                    ann.append(coco_captions.imgToAnns[img_id])
+                    ann.extend(coco_captions.imgToAnns[img_id])
 
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
             g.img_dir = os.path.join(sly_dataset_dir, "img")
