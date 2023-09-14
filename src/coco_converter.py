@@ -21,26 +21,25 @@ def add_tail(body: str, tail: str):
     return f"{body}_{tail}"
 
 
-def get_ann_types(coco: COCO = None, captions: dict = None) -> List[str]:
+def get_ann_types(coco: COCO) -> List[str]:
     ann_types = []
 
     sly.logger.info("Getting info about annotation types..")
 
-    if coco is not None:
-        annotation_ids = coco.getAnnIds()
-        if any("bbox" in coco.anns[ann_id] for ann_id in annotation_ids):
-            ann_types.append("bbox")
-        if any("segmentation" in coco.anns[ann_id] for ann_id in annotation_ids):
-            ann_types.append("segmentation")
-    if captions is not None:
-        if any("caption" in ann for ann in captions["annotations"]):
-            ann_types.append("caption")
+    annotation_ids = coco.getAnnIds()
+    if any("bbox" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("bbox")
+    if any("segmentation" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("segmentation")
+    if any("caption" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("caption")
 
     return ann_types
 
 
 def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
     colors = []
+    tag_metas = []
     for category in coco_categories:
         if category["name"] in [obj_class.name for obj_class in g.META.obj_classes]:
             continue
@@ -48,7 +47,6 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
         colors.append(new_color)
 
         obj_classes = []
-        tag_metas = []
 
         if ann_types is not None:
             if "segmentation" in ann_types:
@@ -57,11 +55,11 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
                 obj_classes.append(
                     sly.ObjClass(add_tail(category["name"], "bbox"), sly.Rectangle, new_color)
                 )
-            if "caption" in ann_types:
-                tag_metas.append(sly.TagMeta("caption", sly.TagValueType.ANY_STRING))
 
         g.META = g.META.add_obj_classes(obj_classes)
-        g.META = g.META.add_tag_metas(tag_metas)
+    if "caption" in ann_types:
+        tag_metas.append(sly.TagMeta("caption", sly.TagValueType.ANY_STRING))
+    g.META = g.META.add_tag_metas(tag_metas)
     return g.META
 
 

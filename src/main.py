@@ -18,9 +18,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         sly.logger.info(f"Start processing {dataset} dataset...")
         coco_dataset_dir = os.path.join(g.COCO_BASE_DIR, dataset)
         if not dir_exists(coco_dataset_dir):
-            app_logger.info(
-                f"File {coco_dataset_dir} has been skipped."
-            )
+            app_logger.info(f"File {coco_dataset_dir} has been skipped.")
             continue
         coco_ann_dir = os.path.join(coco_dataset_dir, "annotations")
         if not dir_exists(os.path.join(coco_dataset_dir, "images")):
@@ -39,8 +37,10 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             try:
                 coco_instances = COCO(annotation_file=coco_instances_ann_path)
             except Exception as e:
-                raise Exception(f"Incorrect instances annotation file: {coco_instances_ann_path}: {e}")
-            
+                raise Exception(
+                    f"Incorrect instances annotation file: {coco_instances_ann_path}: {e}"
+                )
+
             categories = coco_instances.loadCats(ids=coco_instances.getCatIds())
             coco_images = coco_instances.imgs
             coco_anns = coco_instances.imgToAnns
@@ -48,19 +48,19 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             types = coco_converter.get_ann_types(coco=coco_instances)
 
             if coco_captions_ann_path is not None and sly.fs.file_exists(coco_captions_ann_path):
-                coco_captions = sly.json.load_json_file(coco_captions_ann_path)
-                types += coco_converter.get_ann_types(captions=coco_captions)
-                for curr_ann_data in coco_captions["annotations"]:
-                    image_id = curr_ann_data["image_id"]
-                    coco_anns[image_id].append(curr_ann_data)
+                try:
+                    coco_captions = COCO(annotation_file=coco_captions_ann_path)
+                except Exception as e:
+                    raise Exception(
+                        f"Incorrect captions annotation file: {coco_captions_ann_path}: {e}"
+                    )
+                types += coco_converter.get_ann_types(coco=coco_captions)
+                for img_id, ann in coco_instances.imgToAnns.items():
+                    ann.update(coco_captions.imgToAnns[img_id])
 
-
-            sly_dataset_dir = coco_converter.create_sly_dataset_dir(
-                dataset_name=dataset
-            )
+            sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
             g.img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
-
 
             meta = coco_converter.get_sly_meta_from_coco(
                 coco_categories=categories, dataset_name=dataset, ann_types=types
