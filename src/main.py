@@ -1,6 +1,7 @@
 import os
 
 import supervisely as sly
+from collections import defaultdict
 from pycocotools.coco import COCO
 from supervisely.io.fs import dir_exists
 
@@ -40,17 +41,19 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             except Exception as e:
                 raise Exception(f"Incorrect instances annotation file: {coco_instances_ann_path}: {e}")
             
-            coco_captions = None
-            if coco_captions_ann_path is not None:
-                try:
-                    coco_captions = COCO(annotation_file=coco_captions_ann_path)
-                except Exception as e:
-                    raise Exception(f"Incorrect captions annotation file: {coco_captions_ann_path}: {e}")
             categories = coco_instances.loadCats(ids=coco_instances.getCatIds())
             coco_images = coco_instances.imgs
             coco_anns = coco_instances.imgToAnns
 
-            coco_captions_ann = coco_captions.imgToAnns if coco_captions is not None else None
+            types = coco_converter.get_ann_types(coco=coco_instances)
+
+            if coco_captions_ann_path is not None and sly.fs.file_exists(coco_captions_ann_path):
+                coco_captions = sly.json.load_json_file(coco_captions_ann_path)
+                types += coco_converter.get_ann_types(captions=coco_captions)
+                for curr_ann_data in coco_captions["annotations"]:
+                    image_id = curr_ann_data["image_id"]
+                    coco_anns[image_id].append(curr_ann_data)
+
 
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(
                 dataset_name=dataset
@@ -58,7 +61,6 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             g.img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
 
-            types = coco_converter.get_ann_types(coco_instances) + coco_converter.get_ann_types(coco_captions)
 
             meta = coco_converter.get_sly_meta_from_coco(
                 coco_categories=categories, dataset_name=dataset, ann_types=types
@@ -72,14 +74,12 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
 
             for img_id, img_info in coco_images.items():
                 img_ann = coco_anns[img_id]
-                captions = coco_captions_ann[img_id] if coco_captions_ann is not None else None
                 img_size = (img_info["height"], img_info["width"])
                 ann = coco_converter.create_sly_ann_from_coco_annotation(
                     meta=meta,
                     coco_categories=categories,
                     coco_ann=img_ann,
                     image_size=img_size,
-                    captions=captions,
                 )
                 coco_converter.move_trainvalds_to_sly_dataset(
                     dataset=dataset, coco_image=img_info, ann=ann

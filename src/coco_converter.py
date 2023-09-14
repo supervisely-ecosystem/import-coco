@@ -21,18 +21,20 @@ def add_tail(body: str, tail: str):
     return f"{body}_{tail}"
 
 
-def get_ann_types(coco: COCO) -> List[str]:
+def get_ann_types(coco: COCO = None, captions: dict = None) -> List[str]:
     ann_types = []
 
     sly.logger.info("Getting info about annotation types..")
 
-    annotation_ids = coco.getAnnIds()
-    if any("bbox" in coco.anns[ann_id] for ann_id in annotation_ids):
-        ann_types.append("bbox")
-    if any("segmentation" in coco.anns[ann_id] for ann_id in annotation_ids):
-        ann_types.append("segmentation")
-    if any("caption" in coco.anns[ann_id] for ann_id in annotation_ids):
-        ann_types.append("caption")
+    if coco is not None:
+        annotation_ids = coco.getAnnIds()
+        if any("bbox" in coco.anns[ann_id] for ann_id in annotation_ids):
+            ann_types.append("bbox")
+        if any("segmentation" in coco.anns[ann_id] for ann_id in annotation_ids):
+            ann_types.append("segmentation")
+    if captions is not None:
+        if any("caption" in ann for ann in captions["annotations"]):
+            ann_types.append("caption")
 
     return ann_types
 
@@ -147,8 +149,9 @@ def convert_rle_mask_to_polygon(coco_ann):
     return sly.Bitmap(mask).to_contours()
 
 
-def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_size, captions):
+def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_size):
     labels = []
+    imag_tags = []
     name_cat_id_map = coco_category_to_class_name(coco_categories)
     for object in coco_ann:
         segm = object.get("segmentation")
@@ -182,10 +185,11 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                 x, y, w, h = bbox
                 rectangle = sly.Label(sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle)
                 labels.append(rectangle)
-    imag_tags = []
-    if captions is not None:
-        for caption in captions:
-            imag_tags.append(sly.Tag(meta.get_tag_meta("caption"), caption["caption"]))
+
+        caption = object.get("caption")
+        if caption is not None:
+            imag_tags.append(sly.Tag(meta.get_tag_meta("caption"), caption))
+
     return sly.Annotation(image_size, labels=labels, img_tags=imag_tags)
 
 
