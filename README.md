@@ -26,7 +26,7 @@ App converts [COCO format](https://cocodataset.org/#home) datasets to [Supervise
 Application key points:  
 - Import full original COCO 2017 & COCO 2014 datasets
 - Supports custom coco datasets
-- Supports only instance segmentation(polygons) and object detection(bounding boxes) from COCO format
+- Supports only instance segmentation(polygons), object detection(bounding boxes) and captions (tags) from COCO format
 - All information about dataset, licenses and images from COCO annotation file **will be lost**
 - Backward compatible with [Export to COCO](https://ecosystem.supervisely.com/apps/export-to-coco?_ga=2.203216728.833506216.1692536477-1574751671.1670221597)
 - Support holes in polygons
@@ -35,12 +35,15 @@ Custom project structure:
 
 Here is an example of a valid project structure to import custom COCO dataset - [Lemons.zip](https://github.com/supervisely-ecosystem/import-coco/files/12407330/Lemons.zip).
 
+To import COCO Keypoints use [Import COCO Keypoints](https://ecosystem.supervisely.com/apps/import-coco-keypoints) app.
+
 ```
 .
 COCO_BASE_DIRECTORY
 ├── coco_dataset_1        # With annotations
 │   ├── annotations
-│   │   └── instances.json
+│   │   ├── instances.json
+│   │   └── captions.json # optional (if you want to import captions)
 │   └── images
 │       ├── IMG_3861.jpeg
 │       ├── IMG_4451.jpeg
