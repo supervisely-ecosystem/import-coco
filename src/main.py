@@ -48,13 +48,11 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             if coco_captions_ann_path is not None and sly.fs.file_exists(coco_captions_ann_path):
                 try:
                     coco_captions = COCO(annotation_file=coco_captions_ann_path)
-                except Exception as e:
-                    raise Exception(
-                        f"Incorrect captions annotation file: {coco_captions_ann_path}: {e}"
-                    )
-                types += coco_converter.get_ann_types(coco=coco_captions)
-                for img_id, ann in coco_instances.imgToAnns.items():
-                    ann.extend(coco_captions.imgToAnns[img_id])
+                    types += coco_converter.get_ann_types(coco=coco_captions)
+                    for img_id, ann in coco_instances.imgToAnns.items():
+                        ann.extend(coco_captions.imgToAnns[img_id])
+                except:
+                    coco_captions = None
 
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
             g.img_dir = os.path.join(sly_dataset_dir, "img")

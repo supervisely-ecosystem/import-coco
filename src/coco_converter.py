@@ -257,17 +257,18 @@ def get_ann_path(ann_dir, dataset_name, is_original):
             if g.INCLUDE_CAPTIONS:
                 instances_anns = [ann_file for ann_file in ann_files if "instance" in ann_file]
                 captions_anns = [ann_file for ann_file in ann_files if "caption" in ann_file]
-                if (
-                    len(instances_anns) == 1
-                    and len(captions_anns) == 1
-                    and instances_anns[0] != captions_anns[0]
-                ):
-                    instances_ann, captions_ann = instances_anns[0], captions_anns[0]
-                else:
-                    instances_ann = captions_ann = None
+                if len(instances_anns) == 1:
+                    instances_ann = instances_anns[0]
+                if len(captions_anns) == 1:
+                    captions_ann = captions_anns[0]
+                if instances_ann == captions_anns or len(captions_anns) == 0 or len(instances_anns) == 0:
+                    instances_ann = ann_files[0]
+                    captions_ann = None
                     sly.logger.warn(
-                        f"Found more than one .json annotation file. "
-                        f"Please, specify names which one is for instances and which one is for captions."
+                        "Found more than one .json annotation file. "
+                        "Import captions option is enabled, but more than one .json annotation file found. "
+                        "It will be used for instances. "
+                        "If you want to import captions, please, specify captions annotation file name."
                     )
             else:
                 sly.logger.warn(
