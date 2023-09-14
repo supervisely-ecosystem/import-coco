@@ -31,6 +31,8 @@ def get_ann_types(coco: COCO) -> List[str]:
         ann_types.append("bbox")
     if any("segmentation" in coco.anns[ann_id] for ann_id in annotation_ids):
         ann_types.append("segmentation")
+    if any("caption" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("caption")
 
     return ann_types
 
@@ -44,6 +46,7 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
         colors.append(new_color)
 
         obj_classes = []
+        tag_metas = []
 
         if ann_types is not None:
             if "segmentation" in ann_types:
@@ -52,8 +55,11 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
                 obj_classes.append(
                     sly.ObjClass(add_tail(category["name"], "bbox"), sly.Rectangle, new_color)
                 )
+            if "caption" in ann_types:
+                tag_metas.append(sly.TagMeta("caption", sly.TagValueType.ANY_STRING))
 
         g.META = g.META.add_obj_classes(obj_classes)
+        g.META = g.META.add_tag_metas(tag_metas)
     return g.META
 
 
@@ -141,11 +147,10 @@ def convert_rle_mask_to_polygon(coco_ann):
     return sly.Bitmap(mask).to_contours()
 
 
-def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_size):
+def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_size, captions):
     labels = []
     name_cat_id_map = coco_category_to_class_name(coco_categories)
     for object in coco_ann:
-
         segm = object.get("segmentation")
         curr_labels = []
         if segm is not None and len(segm) > 0:
@@ -177,7 +182,11 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
                 x, y, w, h = bbox
                 rectangle = sly.Label(sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle)
                 labels.append(rectangle)
-    return sly.Annotation(image_size, labels)
+    imag_tags = []
+    if captions is not None:
+        for caption in captions:
+            imag_tags.append(sly.Tag(meta.get_tag_meta("caption"), caption["caption"]))
+    return sly.Annotation(image_size, labels=labels, img_tags=imag_tags)
 
 
 def create_sly_dataset_dir(dataset_name):
@@ -230,9 +239,18 @@ def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
         if len(ann_files) == 1:
             return True
         elif len(ann_files) > 1:
-            sly.logger.warn(
-                f"Found more than one .json annotation file in the {ann_dir} directory. Please, read apps overview and prepare the dataset correctly."
-            )
+            instances_ann_exists = any("instances" in ann_file for ann_file in ann_files)
+            captions_ann_exists = any("captions" in ann_file for ann_file in ann_files)
+            if instances_ann_exists and captions_ann_exists:
+                # instances_ann = [ann_file for ann_file in ann_files if "instances" in ann_file][0]
+                # captions_ann = [ann_file for ann_file in ann_files if "captions" in ann_file][0]
+                # if instances_ann != captions_ann:
+                sly.logger.warn(f"Found instances and captions annotation files.")
+                return True
+            else:
+                sly.logger.warn(
+                    f"Found more than one .json annotation file. Please, specify names which one is for instances and which one is for captions."
+                )
         elif len(ann_files) == 0:
             sly.logger.info(
                 f"Annotation file not found in {ann_dir}. Please, read apps overview and prepare the dataset correctly."
@@ -241,8 +259,32 @@ def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
 
 
 def get_ann_path(ann_dir, dataset_name, is_original):
+    instances_ann, captions_ann = None, None
     if is_original:
-        return os.path.join(ann_dir, f"instances_{dataset_name}.json")
+        instances_ann = os.path.join(ann_dir, f"instances_{dataset_name}.json")
+        captions_ann = os.path.join(ann_dir, f"captions_{dataset_name}.json")
     else:
         ann_files = glob.glob(os.path.join(ann_dir, "*.json"))
-        return ann_files[0]
+        if len(ann_files) == 1:
+            instances_ann, captions_ann = ann_files[0], None
+        elif len(ann_files) > 1:
+            instances_ann_exists = any("instances" in ann_file for ann_file in ann_files)
+            captions_ann_exists = any("captions" in ann_file for ann_file in ann_files)
+            if instances_ann_exists and captions_ann_exists:
+                instances_ann = [ann_file for ann_file in ann_files if "instances" in ann_file][0]
+                captions_ann = [ann_file for ann_file in ann_files if "captions" in ann_file][0]
+                if instances_ann == captions_ann:
+                    instances_ann = captions_ann = None
+                    sly.logger.warn(
+                        "Found same names for instances and captions annotation files. "
+                        f"Please, specify names which one is for instances and which one is for captions."
+                    )
+                sly.logger.info(
+                    f"Found instances and captions annotation files: {instances_ann} {captions_ann}"
+                )
+            else:
+                sly.logger.warn(
+                    f"Found more than one .json annotation file. "
+                    "Please, specify names which one is for instances and which one is for captions."
+                )
+    return instances_ann, captions_ann

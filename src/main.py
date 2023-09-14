@@ -31,17 +31,26 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         if coco_converter.check_dataset_for_annotation(
             dataset_name=dataset, ann_dir=coco_ann_dir, is_original=g.is_original
         ):
-            coco_ann_path = coco_converter.get_ann_path(
+            coco_instances_ann_path, coco_captions_ann_path = coco_converter.get_ann_path(
                 ann_dir=coco_ann_dir, dataset_name=dataset, is_original=g.is_original
             )
 
             try:
-                coco = COCO(annotation_file=coco_ann_path)
+                coco_instances = COCO(annotation_file=coco_instances_ann_path)
             except Exception as e:
-                raise Exception(f"Incorrect annotation file: {coco_ann_path}: {e}")
-            categories = coco.loadCats(ids=coco.getCatIds())
-            coco_images = coco.imgs
-            coco_anns = coco.imgToAnns
+                raise Exception(f"Incorrect instances annotation file: {coco_instances_ann_path}: {e}")
+            
+            coco_captions = None
+            if coco_captions_ann_path is not None:
+                try:
+                    coco_captions = COCO(annotation_file=coco_captions_ann_path)
+                except Exception as e:
+                    raise Exception(f"Incorrect captions annotation file: {coco_captions_ann_path}: {e}")
+            categories = coco_instances.loadCats(ids=coco_instances.getCatIds())
+            coco_images = coco_instances.imgs
+            coco_anns = coco_instances.imgToAnns
+
+            coco_captions_ann = coco_captions.imgToAnns if coco_captions is not None else None
 
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(
                 dataset_name=dataset
@@ -49,7 +58,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             g.img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
 
-            types = coco_converter.get_ann_types(coco)
+            types = coco_converter.get_ann_types(coco_instances) + coco_converter.get_ann_types(coco_captions)
 
             meta = coco_converter.get_sly_meta_from_coco(
                 coco_categories=categories, dataset_name=dataset, ann_types=types
@@ -63,12 +72,14 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
 
             for img_id, img_info in coco_images.items():
                 img_ann = coco_anns[img_id]
+                captions = coco_captions_ann[img_id] if coco_captions_ann is not None else None
                 img_size = (img_info["height"], img_info["width"])
                 ann = coco_converter.create_sly_ann_from_coco_annotation(
                     meta=meta,
                     coco_categories=categories,
                     coco_ann=img_ann,
                     image_size=img_size,
+                    captions=captions,
                 )
                 coco_converter.move_trainvalds_to_sly_dataset(
                     dataset=dataset, coco_image=img_info, ann=ann
