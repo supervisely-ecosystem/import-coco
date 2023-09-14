@@ -27,12 +27,10 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             )
             continue
 
-        if coco_converter.check_dataset_for_annotation(
-            dataset_name=dataset, ann_dir=coco_ann_dir, is_original=g.is_original
-        ):
-            coco_instances_ann_path, coco_captions_ann_path = coco_converter.get_ann_path(
-                ann_dir=coco_ann_dir, dataset_name=dataset, is_original=g.is_original
-            )
+        coco_instances_ann_path, coco_captions_ann_path = coco_converter.get_ann_path(
+            ann_dir=coco_ann_dir, dataset_name=dataset, is_original=g.is_original
+        )
+        if coco_instances_ann_path is not None:
 
             try:
                 coco_instances = COCO(annotation_file=coco_instances_ann_path)
@@ -47,7 +45,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
 
             types = coco_converter.get_ann_types(coco=coco_instances)
 
-            if coco_captions_ann_path is not None and sly.fs.file_exists(coco_captions_ann_path):
+            if coco_captions_ann_path is not None:
                 try:
                     coco_captions = COCO(annotation_file=coco_captions_ann_path)
                 except Exception as e:

@@ -90,8 +90,17 @@
         <sly-field
                 title="Result Project Name"
                 description="Enter project name manually (optional) or keep empty to generate it automatically">
+                <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
         </sly-field>
-        <el-input placeholder="Enter Project Name" v-model="state.projectName"></el-input>
+    </div>
+    <div class="fflex align-start">
+        <sly-field
+            title="Import captions"
+            description="Specify whether we need to add captions to the existing instances.">
+            <el-checkbox v-model="state.captions">include captions</el-checkbox>
+            <br>
+            <span v-if="!!state.captions" style="color: #ed4242">it requires captions annotation file to be presented (read application Overview)</span>
+        </sly-field>
     </div>
 </div>
 

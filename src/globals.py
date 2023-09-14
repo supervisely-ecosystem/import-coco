@@ -2,6 +2,7 @@ import ast
 import os
 import shutil
 
+from distutils.util import strtobool
 import supervisely as sly
 from supervisely.io.fs import mkdir
 from os.path import basename, dirname, normpath
@@ -31,6 +32,7 @@ META = sly.ProjectMeta()
 
 INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
+INCLUDE_CAPTIONS = bool(strtobool(os.getenv("modal.state.captions")))
 
 if SLY_SELECTED_CONTEXT != "ecosystem":
     COCO_MODE = "custom"

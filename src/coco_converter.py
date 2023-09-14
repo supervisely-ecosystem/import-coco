@@ -232,61 +232,49 @@ def move_testds_to_sly_dataset(dataset):
         ds_progress.iter_done_report()
 
 
-def check_dataset_for_annotation(dataset_name, ann_dir, is_original):
-    if is_original:
-        ann_path = os.path.join(ann_dir, f"instances_{dataset_name}.json")
-        return bool(os.path.exists(ann_path) and os.path.isfile(ann_path))
-    else:
-        ann_files = glob.glob(os.path.join(ann_dir, "*.json"))
-        if len(ann_files) == 1:
-            return True
-        elif len(ann_files) > 1:
-            instances_ann_exists = any("instances" in ann_file for ann_file in ann_files)
-            captions_ann_exists = any("captions" in ann_file for ann_file in ann_files)
-            if instances_ann_exists and captions_ann_exists:
-                # instances_ann = [ann_file for ann_file in ann_files if "instances" in ann_file][0]
-                # captions_ann = [ann_file for ann_file in ann_files if "captions" in ann_file][0]
-                # if instances_ann != captions_ann:
-                sly.logger.warn(f"Found instances and captions annotation files.")
-                return True
-            else:
-                sly.logger.warn(
-                    f"Found more than one .json annotation file. Please, specify names which one is for instances and which one is for captions."
-                )
-        elif len(ann_files) == 0:
-            sly.logger.info(
-                f"Annotation file not found in {ann_dir}. Please, read apps overview and prepare the dataset correctly."
-            )
-        return False
-
-
 def get_ann_path(ann_dir, dataset_name, is_original):
     instances_ann, captions_ann = None, None
     if is_original:
         instances_ann = os.path.join(ann_dir, f"instances_{dataset_name}.json")
-        captions_ann = os.path.join(ann_dir, f"captions_{dataset_name}.json")
+        if not (os.path.exists(instances_ann) and os.path.isfile(instances_ann)):
+            instances_ann = None
+        if g.INCLUDE_CAPTIONS:
+            captions_ann = os.path.join(ann_dir, f"captions_{dataset_name}.json")
+            if not (os.path.exists(captions_ann) and os.path.isfile(captions_ann)):
+                captions_ann = None
     else:
         ann_files = glob.glob(os.path.join(ann_dir, "*.json"))
         if len(ann_files) == 1:
             instances_ann, captions_ann = ann_files[0], None
+            if g.INCLUDE_CAPTIONS:
+                sly.logger.warn(
+                    "Import captions is enabled, but only one .json annotation file found. "
+                    "It will be used for instances. "
+                    "If you want to import captions, please, add captions annotation file."
+                )
+
         elif len(ann_files) > 1:
-            instances_ann_exists = any("instances" in ann_file for ann_file in ann_files)
-            captions_ann_exists = any("captions" in ann_file for ann_file in ann_files)
-            if instances_ann_exists and captions_ann_exists:
-                instances_ann = [ann_file for ann_file in ann_files if "instances" in ann_file][0]
-                captions_ann = [ann_file for ann_file in ann_files if "captions" in ann_file][0]
-                if instances_ann == captions_ann:
+            if g.INCLUDE_CAPTIONS:
+                instances_ann = [ann_file for ann_file in ann_files if "instance" in ann_file]
+                captions_ann = [ann_file for ann_file in ann_files if "caption" in ann_file]
+                if (
+                    len(instances_ann) == 1
+                    and len(captions_ann) == 1
+                    and instances_ann[0] != captions_ann[0]
+                ):
+                    instances_ann, captions_ann = instances_ann[0], captions_ann[0]
+                else:
                     instances_ann = captions_ann = None
                     sly.logger.warn(
-                        "Found same names for instances and captions annotation files. "
+                        f"Found more than one .json annotation file. "
                         f"Please, specify names which one is for instances and which one is for captions."
                     )
-                sly.logger.info(
-                    f"Found instances and captions annotation files: {instances_ann} {captions_ann}"
-                )
             else:
                 sly.logger.warn(
-                    f"Found more than one .json annotation file. "
-                    "Please, specify names which one is for instances and which one is for captions."
+                    "Import captions is disabled, but more than one .json annotation file found. "
+                    "Please, enable import captions or keep only one .json annotation file for instances in each dataset."
                 )
+    sly.logger.info(f"instances_ann: {instances_ann}")
+    if g.INCLUDE_CAPTIONS:
+        sly.logger.info(f"captions_ann: {captions_ann}")
     return instances_ann, captions_ann

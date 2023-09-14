@@ -18,7 +18,8 @@
         "cocoDataset": "original",
         "projectName": "",
         "isDragMode": "Drag & drop",
-        "files": ""
+        "files": "",
+        "captions": false
     },
     "context_menu": {
         "target": [
