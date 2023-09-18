@@ -1,7 +1,6 @@
 import os
 
 import supervisely as sly
-from collections import defaultdict
 from pycocotools.coco import COCO
 from supervisely.io.fs import dir_exists
 
@@ -14,7 +13,9 @@ import globals as g
 @sly.timeit
 def import_coco(api: sly.Api, task_id, context, state, app_logger):
     project_name, coco_datasets = coco_downloader.start(app_logger)
+    total_images = 0
     for dataset in coco_datasets:
+        current_dataset_images_cnt = 0
         sly.logger.info(f"Start processing {dataset} dataset...")
         coco_dataset_dir = os.path.join(g.COCO_BASE_DIR, dataset)
         if not dir_exists(coco_dataset_dir):
@@ -69,17 +70,23 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             )
 
             for img_id, img_info in coco_images.items():
-                img_ann = coco_anns[img_id]
-                img_size = (img_info["height"], img_info["width"])
-                ann = coco_converter.create_sly_ann_from_coco_annotation(
-                    meta=meta,
-                    coco_categories=categories,
-                    coco_ann=img_ann,
-                    image_size=img_size,
-                )
-                coco_converter.move_trainvalds_to_sly_dataset(
-                    dataset=dataset, coco_image=img_info, ann=ann
-                )
+                image_name = img_info["file_name"]
+                if "/" in image_name:
+                    image_name = os.path.basename(image_name)
+                if sly.fs.file_exists(os.path.join(g.COCO_BASE_DIR, dataset, "images", image_name)):
+                    img_ann = coco_anns[img_id]
+                    img_size = (img_info["height"], img_info["width"])
+                    ann = coco_converter.create_sly_ann_from_coco_annotation(
+                        meta=meta,
+                        coco_categories=categories,
+                        coco_ann=img_ann,
+                        image_size=img_size,
+                    )
+                    coco_converter.move_trainvalds_to_sly_dataset(
+                        dataset=dataset, coco_image=img_info, ann=ann
+                    )
+                    current_dataset_images_cnt += 1
+
                 ds_progress.iter_done_report()
         else:
             coco_converter.get_sly_meta_from_coco(coco_categories=[], dataset_name=dataset)
@@ -88,15 +95,26 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             g.dst_img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
             coco_converter.move_testds_to_sly_dataset(dataset=dataset)
-        sly.logger.info(f"Dataset {dataset} has been successfully converted.")
+        if current_dataset_images_cnt == 0:
+            sly.logger.warn(f"Dataset {dataset} has no images.")
+            coco_converter.remove_empty_sly_dataset_dir(dataset_name=dataset)
+        else:
+            sly.logger.info(f"Dataset {dataset} has been successfully converted.")
+            total_images += current_dataset_images_cnt
 
-    sly.upload_project(
-        dir=g.SLY_BASE_DIR,
-        api=api,
-        workspace_id=g.WORKSPACE_ID,
-        project_name=project_name,
-        log_progress=True,
-    )
+    if total_images == 0:
+        sly.logger.warn(
+            "No images have been uploaded. "
+            "Check the names of the input images (it must correspond to image names in annotations)."
+        )
+    else:
+        sly.upload_project(
+            dir=g.SLY_BASE_DIR,
+            api=api,
+            workspace_id=g.WORKSPACE_ID,
+            project_name=project_name,
+            log_progress=True,
+        )
     g.my_app.stop()
 
 

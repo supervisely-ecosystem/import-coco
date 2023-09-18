@@ -201,6 +201,13 @@ def create_sly_dataset_dir(dataset_name):
     return dataset_dir
 
 
+
+def remove_empty_sly_dataset_dir(dataset_name):
+    dataset_dir = os.path.join(g.SLY_BASE_DIR, dataset_name)
+    if os.path.exists(dataset_dir) and os.path.isdir(dataset_dir):
+        shutil.rmtree(dataset_dir)
+
+
 def move_trainvalds_to_sly_dataset(dataset, coco_image, ann):
     image_name = coco_image["file_name"]
     if "/" in image_name:
