@@ -144,6 +144,8 @@ def convert_rle_mask_to_polygon(coco_ann):
         )
         mask = mask_util.decode(rle_obj)
     mask = np.array(mask, dtype=bool)
+    if not np.any(mask):
+        return []
     return sly.Bitmap(mask).to_contours()
 
 
