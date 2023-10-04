@@ -92,6 +92,8 @@ def convert_polygon_vertices(coco_ann, image_size):
     polygons = coco_ann["segmentation"]
     if all(type(coord) is float for coord in polygons):
         polygons = [polygons]
+    if any(type(coord) is str for polygon in polygons for coord in polygon):
+        return []
 
     exteriors = []
     for polygon in polygons:
