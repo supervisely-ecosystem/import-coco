@@ -107,6 +107,10 @@ def download_file_from_supervisely(
 
 
 def download_custom_coco_dataset(remote_path: str, app_logger):
+    if remote_path is None or remote_path == "":
+        sly.logger.warn(f"Incorrect path to the custom dataset: {remote_path}")
+        return []
+
 
     if g.INPUT_FILE:
         if not g.api.file.exists(g.TEAM_ID, g.INPUT_FILE):
@@ -139,7 +143,8 @@ def download_custom_coco_dataset(remote_path: str, app_logger):
         g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, dir_name)
         sly.fs.remove_junk_from_dir(g.COCO_BASE_DIR)
     else:
-        raise ValueError(f"No valid projects found in the given path: {remote_path}")
+        sly.logger.warn(f"No valid data found in the given path: {remote_path}")
+        return []
     return list(os.listdir(g.COCO_BASE_DIR))
 
 

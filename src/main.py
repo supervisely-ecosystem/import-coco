@@ -32,7 +32,6 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             ann_dir=coco_ann_dir, dataset_name=dataset, is_original=g.is_original
         )
         if coco_instances_ann_path is not None:
-
             try:
                 coco_instances = COCO(annotation_file=coco_instances_ann_path)
             except Exception as e:
@@ -96,13 +95,19 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
             coco_converter.move_testds_to_sly_dataset(dataset=dataset)
         if current_dataset_images_cnt == 0:
-            sly.logger.warn(f"Dataset {dataset} has no images.")
+            sly.logger.warn(
+                f"Dataset {dataset} has no images for corresponding annotations."
+            )
             coco_converter.remove_empty_sly_dataset_dir(dataset_name=dataset)
         else:
             sly.logger.info(f"Dataset {dataset} has been successfully converted.")
             total_images += current_dataset_images_cnt
 
-    if total_images == 0:
+    if len(coco_datasets) == 0:
+        sly.logger.warn(
+            "No datasets have been uploaded. Please, check your input data and try again."
+        )
+    elif total_images == 0:
         sly.logger.warn(
             "No images have been uploaded. "
             "Check the names of the input images (it must correspond to image names in annotations)."
