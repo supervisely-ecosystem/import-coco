@@ -153,7 +153,7 @@ def convert_rle_mask_to_polygon(coco_ann):
 
 def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_size):
     labels = []
-    imag_tags = []
+    image_tags = []
     name_cat_id_map = coco_category_to_class_name(coco_categories)
     for object in coco_ann:
         segm = object.get("segmentation")
@@ -190,9 +190,9 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
 
         caption = object.get("caption")
         if caption is not None:
-            imag_tags.append(sly.Tag(meta.get_tag_meta("caption"), caption))
+            image_tags.append(sly.Tag(meta.get_tag_meta("caption"), caption))
 
-    return sly.Annotation(image_size, labels=labels, img_tags=imag_tags)
+    return sly.Annotation(image_size, labels=labels, img_tags=image_tags)
 
 
 def create_sly_dataset_dir(dataset_name):
