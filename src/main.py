@@ -18,13 +18,21 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         current_dataset_images_cnt = 0
         sly.logger.info(f"Start processing {dataset} dataset...")
         coco_dataset_dir = os.path.join(g.COCO_BASE_DIR, dataset)
+        g.src_img_dir = os.path.join(coco_dataset_dir, "images")
         if not dir_exists(coco_dataset_dir):
             app_logger.info(f"File {coco_dataset_dir} has been skipped.")
             continue
         coco_ann_dir = os.path.join(coco_dataset_dir, "annotations")
-        if not dir_exists(os.path.join(coco_dataset_dir, "images")):
+        if not dir_exists(g.src_img_dir):
             app_logger.warn(
                 "Incorrect input data. Folder with images must be named 'images'. See 'README' for more information."
+            )
+            continue
+
+        images = sly.fs.list_files_recursively(g.src_img_dir, sly.image.SUPPORTED_IMG_EXTS)
+        if len(images) == 0:
+            app_logger.warn(
+                f"Folder {g.src_img_dir} has no images on this level. Read application overview."
             )
             continue
 
@@ -72,7 +80,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 image_name = img_info["file_name"]
                 if "/" in image_name:
                     image_name = os.path.basename(image_name)
-                if sly.fs.file_exists(os.path.join(g.COCO_BASE_DIR, dataset, "images", image_name)):
+                if sly.fs.file_exists(os.path.join(g.src_img_dir, image_name)):
                     img_ann = coco_anns[img_id]
                     img_size = (img_info["height"], img_info["width"])
                     ann = coco_converter.create_sly_ann_from_coco_annotation(
@@ -90,14 +98,11 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         else:
             coco_converter.get_sly_meta_from_coco(coco_categories=[], dataset_name=dataset)
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
-            g.src_img_dir = os.path.join(g.COCO_BASE_DIR, dataset, "images")
             g.dst_img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
             coco_converter.move_testds_to_sly_dataset(dataset=dataset)
         if current_dataset_images_cnt == 0:
-            sly.logger.warn(
-                f"Dataset {dataset} has no images for corresponding annotations."
-            )
+            sly.logger.warn(f"Dataset {dataset} has no images for corresponding annotations.")
             coco_converter.remove_empty_sly_dataset_dir(dataset_name=dataset)
         else:
             sly.logger.info(f"Dataset {dataset} has been successfully converted.")
