@@ -104,7 +104,6 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 dataset=dataset, image_cnt=current_dataset_images_cnt
             )
         if current_dataset_images_cnt == 0:
-            sly.logger.warn(f"Dataset {dataset} has no images for corresponding annotations.")
             coco_converter.remove_empty_sly_dataset_dir(dataset_name=dataset)
         else:
             sly.logger.info(f"Dataset {dataset} has been successfully converted.")
