@@ -231,7 +231,7 @@ def move_testds_to_sly_dataset(dataset, image_cnt):
         min_report_percent=1,
     )
     for image in os.listdir(g.src_img_dir):
-        if sly.image.has_valid_ext(image):
+        if not sly.image.has_valid_ext(image):
             continue
         src_image_path = os.path.join(g.src_img_dir, image)
         dst_image_path = os.path.join(g.dst_img_dir, image)
