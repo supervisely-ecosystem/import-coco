@@ -100,7 +100,9 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
             g.dst_img_dir = os.path.join(sly_dataset_dir, "img")
             g.ann_dir = os.path.join(sly_dataset_dir, "ann")
-            coco_converter.move_testds_to_sly_dataset(dataset=dataset)
+            current_dataset_images_cnt = coco_converter.move_testds_to_sly_dataset(
+                dataset=dataset, image_cnt=current_dataset_images_cnt
+            )
         if current_dataset_images_cnt == 0:
             sly.logger.warn(f"Dataset {dataset} has no images for corresponding annotations.")
             coco_converter.remove_empty_sly_dataset_dir(dataset_name=dataset)
@@ -108,15 +110,8 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             sly.logger.info(f"Dataset {dataset} has been successfully converted.")
             total_images += current_dataset_images_cnt
 
-    if len(coco_datasets) == 0:
-        sly.logger.warn(
-            "No datasets have been uploaded. Please, check your input data and try again."
-        )
-    elif total_images == 0:
-        sly.logger.warn(
-            "No images have been uploaded. "
-            "Check the names of the input images (it must correspond to image names in annotations)."
-        )
+    if len(coco_datasets) == 0 or total_images == 0:
+        sly.logger.warn("Not found COCO format datasets in the input directory")
     else:
         sly.upload_project(
             dir=g.SLY_BASE_DIR,

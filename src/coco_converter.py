@@ -224,13 +224,15 @@ def move_trainvalds_to_sly_dataset(dataset, coco_image, ann):
         shutil.move(coco_img_path, sly_img_path)
 
 
-def move_testds_to_sly_dataset(dataset):
+def move_testds_to_sly_dataset(dataset, image_cnt):
     ds_progress = sly.Progress(
         f"Converting dataset: {dataset}",
         len(os.listdir(g.src_img_dir)),
         min_report_percent=1,
     )
     for image in os.listdir(g.src_img_dir):
+        if sly.image.has_valid_ext(image):
+            continue
         src_image_path = os.path.join(g.src_img_dir, image)
         dst_image_path = os.path.join(g.dst_img_dir, image)
         shutil.move(src_image_path, dst_image_path)
@@ -241,6 +243,8 @@ def move_testds_to_sly_dataset(dataset):
         ann_json = ann.to_json()
         sly.json.dump_json_file(ann_json, os.path.join(g.ann_dir, f"{image}.json"))
         ds_progress.iter_done_report()
+        image_cnt += 1
+    return image_cnt
 
 
 def get_ann_path(ann_dir, dataset_name, is_original):
