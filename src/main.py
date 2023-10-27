@@ -32,7 +32,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         images = sly.fs.list_files_recursively(g.src_img_dir, sly.image.SUPPORTED_IMG_EXTS)
         if len(images) == 0:
             app_logger.warn(
-                f"Folder {g.src_img_dir} has no images on this level. Read application overview."
+                f"Folder '{g.src_img_dir}' has no images at this level. Read the application overview."
             )
             continue
 
