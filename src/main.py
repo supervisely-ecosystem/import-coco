@@ -110,7 +110,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             total_images += current_dataset_images_cnt
 
     if len(coco_datasets) == 0 or total_images == 0:
-        sly.logger.warn("Not found COCO format datasets in the input directory")
+        raise("Not found COCO format datasets in the input directory")
     else:
         sly.upload_project(
             dir=g.SLY_BASE_DIR,
