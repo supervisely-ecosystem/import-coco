@@ -110,7 +110,10 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             total_images += current_dataset_images_cnt
 
     if len(coco_datasets) == 0 or total_images == 0:
-        raise Exception("Not found COCO format datasets in the input directory")
+        msg = "Not found COCO format datasets in the input directory"
+        description = "Please, read the application overview."
+        api.task.set_output_error(task_id, msg, description)
+        raise Exception(msg)
     else:
         sly.upload_project(
             dir=g.SLY_BASE_DIR,
@@ -122,6 +125,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
     g.my_app.stop()
 
 
+@sly.handle_exceptions
 def main():
     sly.logger.info(
         "Script arguments", extra={"TEAM_ID": g.TEAM_ID, "WORKSPACE_ID": g.WORKSPACE_ID}
