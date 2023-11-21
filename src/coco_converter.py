@@ -98,7 +98,10 @@ def convert_polygon_vertices(coco_ann, image_size):
     exteriors = []
     for polygon in polygons:
         polygon = [polygon[i * 2 : (i + 1) * 2] for i in range((len(polygon) + 2 - 1) // 2)]
-        exteriors.append([(width, height) for width, height in polygon])
+        exterior_points = [(width, height) for width, height in polygon]
+        if len(exterior_points) == 0:
+            continue
+        exteriors.append(exterior_points)
 
     interiors = {idx: [] for idx in range(len(exteriors))}
     id2del = []
@@ -113,9 +116,11 @@ def convert_polygon_vertices(coco_ann, image_size):
         for idy, exterior2 in enumerate(exteriors):
             if idx == idy or idy in id2del:
                 continue
-            results = [cv2.pointPolygonTest(contours[0], (x, y), False) > 0 for x, y in exterior2]
-            # if results of True, then all points are inside or on contour
-            if all(results):
+            points_inside = [
+                cv2.pointPolygonTest(contours[0], (x, y), False) > 0 for x, y in exterior2
+            ]
+            # if all list elements are True, then all points are inside or on contour
+            if all(points_inside):
                 interiors[idx].append(deepcopy(exteriors[idy]))
                 id2del.append(idy)
 
@@ -203,7 +208,6 @@ def create_sly_dataset_dir(dataset_name):
     ann_dir = os.path.join(dataset_dir, "ann")
     mkdir(ann_dir)
     return dataset_dir
-
 
 
 def remove_empty_sly_dataset_dir(dataset_name):
