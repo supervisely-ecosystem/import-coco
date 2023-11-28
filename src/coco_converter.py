@@ -161,11 +161,18 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
     imag_tags = []
     name_cat_id_map = coco_category_to_class_name(coco_categories)
     for object in coco_ann:
+        category_id = object.get("category_id")
+        if category_id is None:
+            continue
+        obj_class_name = name_cat_id_map.get(category_id)
+        if obj_class_name is None:
+            sly.logger.warn(f"Category with id {category_id} not found in categories list")
+            continue
+
         segm = object.get("segmentation")
         curr_labels = []
         if segm is not None and len(segm) > 0:
-            obj_class_name_polygon = name_cat_id_map[object["category_id"]]
-            obj_class_polygon = meta.get_obj_class(obj_class_name_polygon)
+            obj_class_polygon = meta.get_obj_class(obj_class_name)
 
             if type(segm) is dict:
                 polygons = convert_rle_mask_to_polygon(object)
@@ -180,10 +187,9 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
         labels.extend(curr_labels)
         bbox = object.get("bbox")
         if bbox is not None and len(bbox) == 4:
-            obj_class_name_rectangle = name_cat_id_map[object["category_id"]]
-            if not obj_class_name_rectangle.endswith("bbox"):
-                obj_class_name_rectangle = add_tail(obj_class_name_rectangle, "bbox")
-            obj_class_rectangle = meta.get_obj_class(obj_class_name_rectangle)
+            if not obj_class_name.endswith("bbox"):
+                obj_class_name = add_tail(obj_class_name, "bbox")
+            obj_class_rectangle = meta.get_obj_class(obj_class_name)
             if len(curr_labels) > 1:
                 for label in curr_labels:
                     bbox = label.geometry.to_bbox()
