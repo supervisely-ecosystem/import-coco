@@ -318,10 +318,11 @@ def get_ann_path(ann_dir, dataset_name, is_original):
     return instances_ann, captions_ann
 
 
-def check_coco_image_info(image_info, img_id):
-    for key in ["file_name", "height", "width"]:
+def get_image_size_from_coco_annotation(image_info, img_id):
+    for key in ["height", "width"]:
         if key not in image_info:
             raise KeyError(
                 "Incorrect COCO annotation file: "
                 f"image info (ID:{img_id}) does not contain '{key}' key"
             )
+    return image_info["height"], image_info["width"]
