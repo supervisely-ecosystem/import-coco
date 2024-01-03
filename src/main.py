@@ -44,8 +44,8 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 coco_instances = COCO(annotation_file=coco_instances_ann_path)
             except Exception as e:
                 raise Exception(
-                    f"Incorrect instances annotation file: {coco_instances_ann_path}: {e}"
-                )
+                    f"Incorrect instances annotation file: {coco_instances_ann_path}: {repr(e)}"
+                ) from e
 
             categories = coco_instances.loadCats(ids=coco_instances.getCatIds())
             coco_images = coco_instances.imgs
@@ -77,6 +77,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             )
 
             for img_id, img_info in coco_images.items():
+                coco_converter.check_coco_image_info(img_info, img_id)
                 image_name = img_info["file_name"]
                 if "/" in image_name:
                     image_name = os.path.basename(image_name)
@@ -125,7 +126,6 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
     g.my_app.stop()
 
 
-@sly.handle_exceptions
 def main():
     sly.logger.info(
         "Script arguments", extra={"TEAM_ID": g.TEAM_ID, "WORKSPACE_ID": g.WORKSPACE_ID}
@@ -134,4 +134,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sly.main_wrapper("main", main)
+    sly.main_wrapper("main", main, log_for_agent=False)
