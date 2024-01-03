@@ -316,3 +316,13 @@ def get_ann_path(ann_dir, dataset_name, is_original):
     if g.INCLUDE_CAPTIONS:
         sly.logger.info(f"captions_ann: {captions_ann}")
     return instances_ann, captions_ann
+
+
+def get_image_size_from_coco_annotation(image_info, img_id):
+    for key in ["height", "width"]:
+        if key not in image_info:
+            raise KeyError(
+                "Incorrect COCO annotation file: "
+                f"image info (ID:{img_id}) does not contain '{key}' key"
+            )
+    return image_info["height"], image_info["width"]

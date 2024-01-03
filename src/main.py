@@ -1,12 +1,12 @@
 import os
 
-import supervisely as sly
 from pycocotools.coco import COCO
-from supervisely.io.fs import dir_exists
 
 import coco_converter
 import coco_downloader
 import globals as g
+import supervisely as sly
+from supervisely.io.fs import dir_exists
 
 
 @g.my_app.callback("import_coco")
@@ -44,8 +44,8 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 coco_instances = COCO(annotation_file=coco_instances_ann_path)
             except Exception as e:
                 raise Exception(
-                    f"Incorrect instances annotation file: {coco_instances_ann_path}: {e}"
-                )
+                    f"Incorrect instances annotation file: {coco_instances_ann_path}: {repr(e)}"
+                ) from e
 
             categories = coco_instances.loadCats(ids=coco_instances.getCatIds())
             coco_images = coco_instances.imgs
@@ -75,26 +75,39 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 total_cnt=len(coco_images),
                 min_report_percent=1,
             )
+            incorrect_anns = 0
+            skipped_images = 0
 
             for img_id, img_info in coco_images.items():
-                image_name = img_info["file_name"]
+                image_name = img_info.get("file_name")
+                if image_name is None:
+                    incorrect_anns += 1
+                    ds_progress.iter_done_report()
+                    continue
                 if "/" in image_name:
                     image_name = os.path.basename(image_name)
-                if sly.fs.file_exists(os.path.join(g.src_img_dir, image_name)):
-                    img_ann = coco_anns[img_id]
-                    img_size = (img_info["height"], img_info["width"])
-                    ann = coco_converter.create_sly_ann_from_coco_annotation(
-                        meta=meta,
-                        coco_categories=categories,
-                        coco_ann=img_ann,
-                        image_size=img_size,
-                    )
-                    coco_converter.move_trainvalds_to_sly_dataset(
-                        dataset=dataset, coco_image=img_info, ann=ann
-                    )
-                    current_dataset_images_cnt += 1
+                if not sly.fs.file_exists(os.path.join(g.src_img_dir, image_name)):
+                    skipped_images += 1
+                    ds_progress.iter_done_report()
+                    continue
+                img_ann = coco_anns[img_id]
+                img_size = coco_converter.get_image_size_from_coco_annotation(img_info, img_id)
+                ann = coco_converter.create_sly_ann_from_coco_annotation(
+                    meta=meta,
+                    coco_categories=categories,
+                    coco_ann=img_ann,
+                    image_size=img_size,
+                )
+                coco_converter.move_trainvalds_to_sly_dataset(
+                    dataset=dataset, coco_image=img_info, ann=ann
+                )
+                current_dataset_images_cnt += 1
 
                 ds_progress.iter_done_report()
+            if incorrect_anns > 0:
+                app_logger.warn(f"{skipped_images} images skipped because of incorrect annotation.")
+            if skipped_images > 0:
+                app_logger.warn(f"{skipped_images} images skipped because of missing files.")
         else:
             coco_converter.get_sly_meta_from_coco(coco_categories=[], dataset_name=dataset)
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
@@ -125,7 +138,6 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
     g.my_app.stop()
 
 
-@sly.handle_exceptions
 def main():
     sly.logger.info(
         "Script arguments", extra={"TEAM_ID": g.TEAM_ID, "WORKSPACE_ID": g.WORKSPACE_ID}
@@ -134,4 +146,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sly.main_wrapper("main", main)
+    sly.main_wrapper("main", main, log_for_agent=False)
