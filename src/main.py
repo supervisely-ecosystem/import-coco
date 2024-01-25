@@ -23,6 +23,11 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             app_logger.info(f"File {coco_dataset_dir} has been skipped.")
             continue
         coco_ann_dir = os.path.join(coco_dataset_dir, "annotations")
+        if not dir_exists(coco_ann_dir):
+            if dir_exists(os.path.join(coco_dataset_dir, "annotation")):
+                coco_ann_dir = os.path.join(coco_dataset_dir, "annotation")
+            else:
+                app_logger.warn(f"Not found 'annotations' folder")
         if not dir_exists(g.src_img_dir):
             app_logger.warn(
                 "Incorrect input data. Folder with images must be named 'images'. See 'README' for more information."
