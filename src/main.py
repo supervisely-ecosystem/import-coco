@@ -41,10 +41,12 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         )
         if coco_instances_ann_path is not None:
             try:
+                coco_instances_file_name = os.path.basename(coco_instances_ann_path)
+                coco_converter.check_high_level_coco_ann_structure(coco_instances_ann_path)
                 coco_instances = COCO(annotation_file=coco_instances_ann_path)
             except Exception as e:
                 raise Exception(
-                    f"Incorrect instances annotation file: {coco_instances_ann_path}: {repr(e)}"
+                    f"Incorrect instances annotation file {coco_instances_file_name}: {repr(e)}"
                 ) from e
 
             categories = coco_instances.loadCats(ids=coco_instances.getCatIds())

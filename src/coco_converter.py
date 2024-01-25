@@ -1,5 +1,6 @@
 import glob
 import os
+import json
 import shutil
 import cv2
 from copy import deepcopy
@@ -13,6 +14,16 @@ from supervisely.io.fs import file_exists, mkdir
 from typing import List
 
 import globals as g
+
+
+def check_high_level_coco_ann_structure(ann_path):
+    with open(ann_path, 'r') as f:
+        dataset = json.load(f)
+        for key in ['annotations', 'images', 'categories']:
+            if key not in dataset:
+                raise Exception(f"[{key}] field is missing")
+            if not isinstance(dataset[key], list):
+                raise Exception(f"[{key}] field value must be a list of dicts")
 
 
 def add_tail(body: str, tail: str):
@@ -326,3 +337,4 @@ def get_image_size_from_coco_annotation(image_info, img_id):
                 f"image info (ID:{img_id}) does not contain '{key}' key"
             )
     return image_info["height"], image_info["width"]
+
