@@ -238,7 +238,7 @@ def move_trainvalds_to_sly_dataset(dataset, coco_image, ann):
     if "/" in image_name:
         image_name = os.path.basename(image_name)
     ann_json = ann.to_json()
-    coco_img_path = os.path.join(g.COCO_BASE_DIR, dataset, "images", image_name)
+    coco_img_path = os.path.join(g.src_img_dir, image_name)
     sly_img_path = os.path.join(g.img_dir, image_name)
     if file_exists(os.path.join(coco_img_path)):
         sly.json.dump_json_file(ann_json, os.path.join(g.ann_dir, f"{image_name}.json"))

@@ -29,10 +29,18 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             else:
                 app_logger.warn(f"Not found 'annotations' folder")
         if not dir_exists(g.src_img_dir):
-            app_logger.warn(
-                "Incorrect input data. Folder with images must be named 'images'. See 'README' for more information."
-            )
-            continue
+            app_logger.warn("Not found 'images' folder.")
+            imgs_list = sly.fs.list_files_recursively(coco_dataset_dir, sly.image.SUPPORTED_IMG_EXTS)
+            if len(imgs_list) > 0:
+                imgs_dirs = [os.path.dirname(img_path) for img_path in imgs_list]
+                imgs_dirs = list(set(imgs_dirs))
+                if len(imgs_dirs) == 1:
+                    g.src_img_dir = imgs_dirs[0]
+                    app_logger.warn(f"Found images in '{g.src_img_dir}' folder.")
+                else:
+                    continue
+            else:
+                continue
 
         images = sly.fs.list_files_recursively(g.src_img_dir, sly.image.SUPPORTED_IMG_EXTS)
         if len(images) == 0:
