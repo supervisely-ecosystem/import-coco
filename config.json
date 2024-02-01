@@ -6,7 +6,7 @@
         "images"
     ],
     "description": "Converts COCO format to Supervisely",
-    "docker_image": "supervisely/import-export:6.73.16",
+    "docker_image": "supervisely/import-export:6.73.22",
     "main_script": "src/main.py",
     "min_instance_version": "6.8.73",
     "modal_template": "src/modal.html",
