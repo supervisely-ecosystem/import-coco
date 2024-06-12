@@ -1,12 +1,23 @@
 import os
+import sys
 
+import supervisely as sly
 from pycocotools.coco import COCO
+from supervisely.io.fs import dir_exists
 
 import coco_converter
 import coco_downloader
 import globals as g
-import supervisely as sly
-from supervisely.io.fs import dir_exists
+
+
+class HiddenCocoPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, "w")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 
 @g.my_app.callback("import_coco")
@@ -30,7 +41,9 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 app_logger.warn(f"Not found 'annotations' folder")
         if not dir_exists(g.src_img_dir):
             app_logger.warn("Not found 'images' folder.")
-            imgs_list = sly.fs.list_files_recursively(coco_dataset_dir, sly.image.SUPPORTED_IMG_EXTS)
+            imgs_list = sly.fs.list_files_recursively(
+                coco_dataset_dir, sly.image.SUPPORTED_IMG_EXTS
+            )
             if len(imgs_list) > 0:
                 imgs_dirs = [os.path.dirname(img_path) for img_path in imgs_list]
                 imgs_dirs = list(set(imgs_dirs))
@@ -56,7 +69,8 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             try:
                 coco_instances_file_name = os.path.basename(coco_instances_ann_path)
                 coco_converter.check_high_level_coco_ann_structure(coco_instances_ann_path)
-                coco_instances = COCO(annotation_file=coco_instances_ann_path)
+                with HiddenCocoPrints():
+                    coco_instances = COCO(annotation_file=coco_instances_ann_path)
             except Exception as e:
                 raise Exception(
                     f"Incorrect instances annotation file {coco_instances_file_name}: {repr(e)}"

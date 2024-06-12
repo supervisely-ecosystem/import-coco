@@ -1,37 +1,27 @@
 {
-  "name": "Import COCO",
-  "type": "app",
-  "categories": [
-    "import",
-    "images"
-  ],
-  "description": "Converts COCO format to Supervisely",
-  "docker_image": "supervisely/import-export:6.73.93",
-  "main_script": "src/main.py",
-  "min_instance_version": "6.9.22",
-  "modal_template": "src/modal.html",
-  "modal_template_state": {
-    "originalDataset": [
-      "train2017",
-      "val2017"
-    ],
-    "cocoDataset": "original",
-    "projectName": "",
-    "isDragMode": "Drag & drop",
-    "files": "",
-    "captions": false
-  },
-  "context_menu": {
-    "target": [
-      "ecosystem",
-      "files_folder",
-      "files_file"
-    ]
-  },
-  "task_location": "workspace_tasks",
-  "isolate": true,
-  "headless": true,
-  "icon": "https://i.imgur.com/4iUNhZG.png",
-  "icon_background": "#FFFFFF",
-  "poster": "https://user-images.githubusercontent.com/48913536/183913663-f48c6c5e-65af-4f7d-b442-8699f2b48309.png"
+	"name": "Import COCO",
+	"type": "app",
+	"categories": ["import", "images"],
+	"description": "Converts COCO format to Supervisely",
+	"docker_image": "supervisely/import-export:6.73.104",
+	"main_script": "src/main.py",
+	"min_instance_version": "6.9.22",
+	"modal_template": "src/modal.html",
+	"modal_template_state": {
+		"originalDataset": ["train2017", "val2017"],
+		"cocoDataset": "original",
+		"projectName": "",
+		"isDragMode": "Drag & drop",
+		"files": "",
+		"captions": false
+	},
+	"context_menu": {
+		"target": ["ecosystem", "files_folder", "files_file"]
+	},
+	"task_location": "workspace_tasks",
+	"isolate": true,
+	"headless": true,
+	"icon": "https://i.imgur.com/4iUNhZG.png",
+	"icon_background": "#FFFFFF",
+	"poster": "https://user-images.githubusercontent.com/48913536/183913663-f48c6c5e-65af-4f7d-b442-8699f2b48309.png"
 }

@@ -1,25 +1,25 @@
 import glob
-import os
 import json
+import os
 import shutil
-import cv2
 from copy import deepcopy
+from typing import List
 
+import cv2
 import numpy as np
 import pycocotools.mask as mask_util
 import supervisely as sly
-from pycocotools.coco import COCO
 from PIL import Image
+from pycocotools.coco import COCO
 from supervisely.io.fs import file_exists, mkdir
-from typing import List
 
 import globals as g
 
 
 def check_high_level_coco_ann_structure(ann_path):
-    with open(ann_path, 'r') as f:
+    with open(ann_path, "r") as f:
         dataset = json.load(f)
-        for key in ['annotations', 'images', 'categories']:
+        for key in ["annotations", "images", "categories"]:
             if key not in dataset:
                 raise Exception(f"[{key}] field is missing")
             if not isinstance(dataset[key], list):
@@ -185,7 +185,15 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
         if segm is not None and len(segm) > 0:
             obj_class_polygon = meta.get_obj_class(obj_class_name)
 
-            if type(segm) is dict:
+            if obj_class_polygon.geometry_type != sly.Polygon:
+                if obj_class_name not in g.conflict_classes:
+                    g.conflict_classes.append(obj_class_name)
+                    sly.logger.warn(
+                        f"Object class '{obj_class_name}' has type '{obj_class_polygon.geometry_type.geometry_name().capitalize()}', "
+                        f"but expected type is 'Polygon'."
+                    )
+                continue
+            elif type(segm) is dict:
                 polygons = convert_rle_mask_to_polygon(object)
                 for polygon in polygons:
                     figure = polygon
@@ -337,4 +345,3 @@ def get_image_size_from_coco_annotation(image_info, img_id):
                 f"image info (ID:{img_id}) does not contain '{key}' key"
             )
     return image_info["height"], image_info["width"]
-

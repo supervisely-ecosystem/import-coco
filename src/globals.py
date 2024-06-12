@@ -1,13 +1,12 @@
 import ast
 import os
 import shutil
-
 from distutils.util import strtobool
-import supervisely as sly
-from supervisely.io.fs import mkdir
 from os.path import basename, dirname, normpath
 
+import supervisely as sly
 from dotenv import load_dotenv
+from supervisely.io.fs import mkdir
 
 if sly.is_development():
     load_dotenv("local.env")
@@ -21,6 +20,7 @@ def str_to_list(data):
     data = ast.literal_eval(data)
     data = [n.strip() for n in data]
     return data
+
 
 TASK_ID = os.environ["TASK_ID"]
 TEAM_ID = int(os.environ["context.teamId"])
@@ -117,7 +117,7 @@ else:
     elif INPUT_FILE:
         custom_ds = INPUT_FILE
         sly.logger.info(f"INPUT_FILE: {custom_ds}")
-    
+
 
 images_links = {
     "train2014": "http://images.cocodataset.org/zips/train2014.zip",
@@ -132,3 +132,5 @@ annotations_links = {
     "trainval2014": "http://images.cocodataset.org/annotations/annotations_trainval2014.zip",
     "trainval2017": "http://images.cocodataset.org/annotations/annotations_trainval2017.zip",
 }
+
+conflict_classes = []
