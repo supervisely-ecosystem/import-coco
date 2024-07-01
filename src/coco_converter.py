@@ -185,7 +185,7 @@ def convert_rle_mask_to_polygon(coco_ann):
     bitmap = sly.Bitmap(mask)
     if g.CONVERT_RLE_TO_BITMAP:
         return None, bitmap
-    return bitmap.to_polygons(), None
+    return bitmap.to_contours(), None
 
 
 def create_sly_ann_from_coco_annotation(
@@ -242,7 +242,6 @@ def create_sly_ann_from_coco_annotation(
                     [sly.Label(figure, obj_class_polygon, binding_key=key) for figure in figures]
                 )
 
-        labels.extend(curr_labels)
         bbox = object.get("bbox")
         if bbox is not None and len(bbox) == 4:
             if not obj_class_name.endswith("bbox"):
@@ -258,6 +257,7 @@ def create_sly_ann_from_coco_annotation(
                     sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle, binding_key=key
                 )
                 labels.append(rectangle)
+        labels.extend(curr_labels)
 
         caption = object.get("caption")
         if caption is not None:
