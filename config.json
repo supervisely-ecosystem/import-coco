@@ -13,7 +13,8 @@
 		"projectName": "",
 		"isDragMode": "Drag & drop",
 		"files": "",
-		"captions": false
+		"captions": false,
+		"rleToBitmap": false
 	},
 	"context_menu": {
 		"target": ["ecosystem", "files_folder", "files_file"]
