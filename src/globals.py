@@ -33,6 +33,7 @@ META = sly.ProjectMeta()
 INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
 INCLUDE_CAPTIONS = bool(strtobool(os.getenv("modal.state.captions")))
+CONVERT_RLE_TO_BITMAP = bool(strtobool(os.getenv("modal.state.rleToBitmap")))
 
 if SLY_SELECTED_CONTEXT != "ecosystem":
     COCO_MODE = "custom"

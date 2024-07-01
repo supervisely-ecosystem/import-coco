@@ -102,5 +102,13 @@
             <span v-if="!!state.captions" style="color: #777777">it requires captions annotation file to be presented (read application overview section)</span>
         </sly-field>
     </div>
+    <div class="fflex align-start">
+        <sly-field
+            title="Import RLE masks"
+            description="Specify whether we need to convert RLE encoded mask to Bitmap object or import it as Polygon objects.">
+            <el-checkbox v-model="state.rleToBitmap">convert to Bitmap</el-checkbox>
+            <br>
+        </sly-field>
+    </div>
 </div>
 

@@ -2,18 +2,19 @@ import glob
 import json
 import os
 import shutil
+import uuid
 from copy import deepcopy
 from typing import List
 
 import cv2
 import numpy as np
 import pycocotools.mask as mask_util
-import supervisely as sly
 from PIL import Image
 from pycocotools.coco import COCO
-from supervisely.io.fs import file_exists, mkdir
 
 import globals as g
+import supervisely as sly
+from supervisely.io.fs import file_exists, mkdir
 
 
 def check_high_level_coco_ann_structure(ann_path):
@@ -30,6 +31,15 @@ def add_tail(body: str, tail: str):
     if " " in body:
         return f"{body} {tail}"
     return f"{body}_{tail}"
+
+
+def wrong_geometry_first_warning(cls_name, obj_cls, expeted_type):
+    if cls_name not in g.conflict_classes:
+        g.conflict_classes.append(cls_name)
+        sly.logger.warn(
+            f"Object class '{cls_name}' has type '{obj_cls.geometry_type.geometry_name().capitalize()}', "
+            f"but expected type is '{expeted_type}'."
+        )
 
 
 def get_ann_types(coco: COCO) -> List[str]:
@@ -89,6 +99,14 @@ def dump_meta(coco_categories, path_to_meta, ann_types=None):
     sly.json.dump_json_file(meta_json, path_to_meta)
     return g.META
 
+
+def update_and_dump_meta(meta, obj_class):
+    meta = meta.add_obj_class(obj_class)
+    meta_json = meta.to_json()
+    path_to_meta = os.path.join(g.SLY_BASE_DIR, "meta.json")
+    sly.json.dump_json_file(meta_json, path_to_meta)
+    g.META = meta
+    return meta
 
 def get_coco_annotations_for_current_image(coco_image, coco_anns):
     image_id = coco_image["id"]
@@ -163,11 +181,16 @@ def convert_rle_mask_to_polygon(coco_ann):
         mask = mask_util.decode(rle_obj)
     mask = np.array(mask, dtype=bool)
     if not np.any(mask):
-        return []
-    return sly.Bitmap(mask).to_contours()
+        return [], None
+    bitmap = sly.Bitmap(mask)
+    if g.CONVERT_RLE_TO_BITMAP:
+        return None, bitmap
+    return bitmap.to_contours(), None
 
 
-def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_size):
+def create_sly_ann_from_coco_annotation(
+    meta: sly.ProjectMeta, coco_categories, coco_ann, image_size
+):
     labels = []
     imag_tags = []
     name_cat_id_map = coco_category_to_class_name(coco_categories)
@@ -182,28 +205,43 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
 
         segm = object.get("segmentation")
         curr_labels = []
+        key = None
         if segm is not None and len(segm) > 0:
             obj_class_polygon = meta.get_obj_class(obj_class_name)
 
             if obj_class_polygon.geometry_type != sly.Polygon:
-                if obj_class_name not in g.conflict_classes:
-                    g.conflict_classes.append(obj_class_name)
-                    sly.logger.warn(
-                        f"Object class '{obj_class_name}' has type '{obj_class_polygon.geometry_type.geometry_name().capitalize()}', "
-                        f"but expected type is 'Polygon'."
-                    )
+                wrong_geometry_first_warning(obj_class_name, obj_class_polygon, sly.Polygon.geometry_name())
                 continue
             elif type(segm) is dict:
-                polygons = convert_rle_mask_to_polygon(object)
-                for polygon in polygons:
-                    figure = polygon
-                    label = sly.Label(figure, obj_class_polygon)
+                polygons, mask = convert_rle_mask_to_polygon(object)
+                key = uuid.uuid4().hex
+                if mask is not None:
+                    obj_class_name_rle = obj_class_name
+                    if not obj_class_name_rle.endswith("rle"):
+                        obj_class_name_rle = add_tail(obj_class_name_rle, "rle")
+                    obj_class_bitmap = meta.get_obj_class(obj_class_name_rle)
+                    if obj_class_bitmap is None:
+                        obj_class_bitmap = sly.ObjClass(
+                            obj_class_name_rle, sly.Bitmap, obj_class_polygon.color
+                        )
+                        meta = update_and_dump_meta(meta, obj_class_bitmap)
+                    elif obj_class_bitmap.geometry_type != sly.Bitmap:
+                        wrong_geometry_first_warning(obj_class_name_rle, obj_class_bitmap, sly.Bitmap.geometry_name())
+                        continue
+                    label = sly.Label(mask, obj_class_bitmap, binding_key=key)
                     curr_labels.append(label)
+                else:
+                    for polygon in polygons:
+                        figure = polygon
+                        label = sly.Label(figure, obj_class_polygon, binding_key=key)
+                        curr_labels.append(label)
             elif type(segm) is list and object["segmentation"]:
                 figures = convert_polygon_vertices(object, image_size)
-                curr_labels.extend([sly.Label(figure, obj_class_polygon) for figure in figures])
+                key = uuid.uuid4().hex
+                curr_labels.extend(
+                    [sly.Label(figure, obj_class_polygon, binding_key=key) for figure in figures]
+                )
 
-        labels.extend(curr_labels)
         bbox = object.get("bbox")
         if bbox is not None and len(bbox) == 4:
             if not obj_class_name.endswith("bbox"):
@@ -212,17 +250,20 @@ def create_sly_ann_from_coco_annotation(meta, coco_categories, coco_ann, image_s
             if len(curr_labels) > 1:
                 for label in curr_labels:
                     bbox = label.geometry.to_bbox()
-                    labels.append(sly.Label(bbox, obj_class_rectangle))
+                    labels.append(sly.Label(bbox, obj_class_rectangle, binding_key=key))
             else:
                 x, y, w, h = bbox
-                rectangle = sly.Label(sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle)
+                rectangle = sly.Label(
+                    sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle, binding_key=key
+                )
                 labels.append(rectangle)
+        labels.extend(curr_labels)
 
         caption = object.get("caption")
         if caption is not None:
             imag_tags.append(sly.Tag(meta.get_tag_meta("caption"), caption))
 
-    return sly.Annotation(image_size, labels=labels, img_tags=imag_tags)
+    return sly.Annotation(image_size, labels=labels, img_tags=imag_tags), meta
 
 
 def create_sly_dataset_dir(dataset_name):

@@ -121,7 +121,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                     continue
                 img_ann = coco_anns[img_id]
                 img_size = coco_converter.get_image_size_from_coco_annotation(img_info, img_id)
-                ann = coco_converter.create_sly_ann_from_coco_annotation(
+                ann, meta = coco_converter.create_sly_ann_from_coco_annotation(
                     meta=meta,
                     coco_categories=categories,
                     coco_ann=img_ann,
