@@ -8,12 +8,15 @@ import supervisely as sly
 from dotenv import load_dotenv
 from supervisely.io.fs import mkdir
 
+from workflow import Workflow
+
 if sly.is_development():
     load_dotenv("local.env")
     load_dotenv(os.path.expanduser("~/supervisely.env"))
 
 my_app = sly.AppService()
 api: sly.Api = my_app.public_api
+workflow = Workflow(api)
 
 
 def str_to_list(data):
