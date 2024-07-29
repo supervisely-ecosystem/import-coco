@@ -157,13 +157,14 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         sly.logger.error(msg)
         api.task.set_output_error(task_id, msg, description)
     else:
-        sly.upload_project(
+        project_id, _ = sly.upload_project(
             dir=g.SLY_BASE_DIR,
             api=api,
             workspace_id=g.WORKSPACE_ID,
             project_name=project_name,
             log_progress=True,
         )
+        g.workflow.add_output(project_id)
     g.my_app.stop()
 
 
