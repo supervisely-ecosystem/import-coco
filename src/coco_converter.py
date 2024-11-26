@@ -108,6 +108,7 @@ def update_and_dump_meta(meta, obj_class):
     g.META = meta
     return meta
 
+
 def get_coco_annotations_for_current_image(coco_image, coco_anns):
     image_id = coco_image["id"]
     return [coco_ann for coco_ann in coco_anns if image_id == coco_ann["image_id"]]
@@ -204,17 +205,19 @@ def create_sly_ann_from_coco_annotation(
             continue
 
         segm = object.get("segmentation")
+        bbox = object.get("bbox")
         curr_labels = []
-        key = None
+        key = uuid.uuid4().hex if segm and bbox else None
         if segm is not None and len(segm) > 0:
             obj_class_polygon = meta.get_obj_class(obj_class_name)
 
             if obj_class_polygon.geometry_type != sly.Polygon:
-                wrong_geometry_first_warning(obj_class_name, obj_class_polygon, sly.Polygon.geometry_name())
+                wrong_geometry_first_warning(
+                    obj_class_name, obj_class_polygon, sly.Polygon.geometry_name()
+                )
                 continue
             elif type(segm) is dict:
                 polygons, mask = convert_rle_mask_to_polygon(object)
-                key = uuid.uuid4().hex
                 if mask is not None:
                     obj_class_name_rle = obj_class_name
                     if not obj_class_name_rle.endswith("rle"):
@@ -226,7 +229,9 @@ def create_sly_ann_from_coco_annotation(
                         )
                         meta = update_and_dump_meta(meta, obj_class_bitmap)
                     elif obj_class_bitmap.geometry_type != sly.Bitmap:
-                        wrong_geometry_first_warning(obj_class_name_rle, obj_class_bitmap, sly.Bitmap.geometry_name())
+                        wrong_geometry_first_warning(
+                            obj_class_name_rle, obj_class_bitmap, sly.Bitmap.geometry_name()
+                        )
                         continue
                     label = sly.Label(mask, obj_class_bitmap, binding_key=key)
                     curr_labels.append(label)
@@ -237,26 +242,17 @@ def create_sly_ann_from_coco_annotation(
                         curr_labels.append(label)
             elif type(segm) is list and object["segmentation"]:
                 figures = convert_polygon_vertices(object, image_size)
-                key = uuid.uuid4().hex
                 curr_labels.extend(
                     [sly.Label(figure, obj_class_polygon, binding_key=key) for figure in figures]
                 )
 
-        bbox = object.get("bbox")
         if bbox is not None and len(bbox) == 4:
             if not obj_class_name.endswith("bbox"):
                 obj_class_name = add_tail(obj_class_name, "bbox")
             obj_class_rectangle = meta.get_obj_class(obj_class_name)
-            if len(curr_labels) > 1:
-                for label in curr_labels:
-                    bbox = label.geometry.to_bbox()
-                    labels.append(sly.Label(bbox, obj_class_rectangle, binding_key=key))
-            else:
-                x, y, w, h = bbox
-                rectangle = sly.Label(
-                    sly.Rectangle(y, x, y + h, x + w), obj_class_rectangle, binding_key=key
-                )
-                labels.append(rectangle)
+            x, y, w, h = bbox
+            rect = sly.Rectangle(y, x, y + h, x + w)
+            labels.append(sly.Label(rect, obj_class_rectangle, binding_key=key))
         labels.extend(curr_labels)
 
         caption = object.get("caption")
