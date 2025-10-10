@@ -10,7 +10,7 @@
   <a href="#Results">Results</a>
 </p>
 
-[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](https://ecosystem.supervisely.com/apps/supervisely-ecosystem/import-coco)
+[![](https://img.shields.io/badge/supervisely-ecosystem-brightgreen)](../../../../supervisely-ecosystem/import-coco)
 [![](https://img.shields.io/badge/slack-chat-green.svg?logo=slack)](https://supervisely.com/slack)
 ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/supervisely-ecosystem/import-coco)
 [![views](https://app.supervisely.com/public/api/v3/ecosystem.counters?repo=supervisely-ecosystem/import-coco&counter=views&label=views)](https://supervisely.com)
@@ -28,14 +28,14 @@ Application key points:
 - Supports custom coco datasets
 - Supports only instance segmentation(polygons), object detection(bounding boxes) and captions (tags) from COCO format
 - All information about dataset, licenses and images from COCO annotation file **will be lost**
-- Backward compatible with [Export to COCO](https://ecosystem.supervisely.com/apps/export-to-coco?_ga=2.203216728.833506216.1692536477-1574751671.1670221597)
+- Backward compatible with [Export to COCO](../../../../supervisely-ecosystem/export-to-coco?_ga=2.203216728.833506216.1692536477-1574751671.1670221597)
 - Support holes in polygons
 
 Custom project structure:
 
 Here is an example of a valid project structure to import custom COCO dataset - [Lemons.zip](https://github.com/supervisely-ecosystem/import-coco/files/12407330/Lemons.zip).
 
-To import COCO Keypoints use [Import COCO Keypoints](https://ecosystem.supervisely.com/apps/import-coco-keypoints) app.
+To import COCO Keypoints use [Import COCO Keypoints](../../../../supervisely-ecosystem/import-coco-keypoints) app.
 
 ```
 .
@@ -62,7 +62,7 @@ COCO_BASE_DIRECTORY
 ```
 
 # How to Use
-**Step 1.** Add [Import COCO](https://ecosystem.supervisely.com/apps/import-coco) to your team from Ecosystem.
+**Step 1.** Add [Import COCO](../../../../supervisely-ecosystem/import-coco) to your team from Ecosystem.
 
 <img data-key="sly-module-link" data-module-slug="supervisely-ecosystem/import-coco" src="https://i.imgur.com/d6ilGDr.png" width="350px" style='padding-bottom: 20px'/>
 
