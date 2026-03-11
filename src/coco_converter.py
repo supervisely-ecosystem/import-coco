@@ -36,7 +36,7 @@ def add_tail(body: str, tail: str):
 def wrong_geometry_first_warning(cls_name, obj_cls, expeted_type):
     if cls_name not in g.conflict_classes:
         g.conflict_classes.append(cls_name)
-        sly.logger.warn(
+        sly.logger.warning(
             f"Object class '{cls_name}' has type '{obj_cls.geometry_type.geometry_name().capitalize()}', "
             f"but expected type is '{expeted_type}'."
         )
@@ -201,7 +201,7 @@ def create_sly_ann_from_coco_annotation(
             continue
         obj_class_name = name_cat_id_map.get(category_id)
         if obj_class_name is None:
-            sly.logger.warn(f"Category with id {category_id} not found in categories list")
+            sly.logger.warning(f"Category with id {category_id} not found in categories list")
             continue
 
         segm = object.get("segmentation")
@@ -328,7 +328,7 @@ def get_ann_path(ann_dir, dataset_name, is_original):
         if len(ann_files) == 1:
             instances_ann, captions_ann = ann_files[0], None
             if g.INCLUDE_CAPTIONS:
-                sly.logger.warn(
+                sly.logger.warning(
                     "Import captions is enabled, but only one .json annotation file found. "
                     "It will be used for instances. "
                     "If you want to import captions, please, add captions annotation file."
@@ -349,7 +349,7 @@ def get_ann_path(ann_dir, dataset_name, is_original):
                 ):
                     instances_ann = ann_files[0]
                     captions_ann = None
-                    sly.logger.warn(
+                    sly.logger.warning(
                         "Found more than one .json annotation file. "
                         "Import captions option is enabled, but more than one .json annotation file found. "
                         "It will be used for instances. "
@@ -357,14 +357,14 @@ def get_ann_path(ann_dir, dataset_name, is_original):
                     )
             else:
                 instances_anns = [ann_file for ann_file in ann_files if "instance" in ann_file]
-                sly.logger.warn(
+                sly.logger.warning(
                     "Import captions is disabled, but more than one .json annotation file found."
                 )
                 if len(instances_anns) == 1:
                     instances_ann = instances_anns[0]
                     sly.logger.info(f"Instances annotation file found: {instances_ann}")
                 else:
-                    sly.logger.warn(
+                    sly.logger.warning(
                         "Cannot find instances annotation file. "
                         "Please, specify instances and captions annotation file names (read app README).)"
                     )

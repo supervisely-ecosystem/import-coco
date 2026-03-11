@@ -12,7 +12,7 @@ import globals as g
 
 
 def download_file_from_link(
-    link, file_name, archive_path, progress_message, app_logger
+    link, file_name, archive_path, progress_message
 ):
     response = requests.head(link, allow_redirects=True)
     sizeb = int(response.headers.get("content-length", 0))
@@ -20,23 +20,23 @@ def download_file_from_link(
         g.api, g.TASK_ID, progress_message, sizeb, is_size=True
     )
     if not file_exists(archive_path):
-        download(link, archive_path, cache=g.my_app.cache, progress=progress_cb)
+        download(link, archive_path, progress=progress_cb)
         dl_progress.reset_progress(g.api, g.TASK_ID)
-        app_logger.info(f"{file_name} has been successfully downloaded")
+        sly.logger.info(f"{file_name} has been successfully downloaded")
 
 
-def download_coco_images(dataset, archive_path, save_path, app_logger):
+def download_coco_images(dataset, archive_path, save_path):
     link = g.images_links[dataset]
     file_name = f"{dataset}.zip"
     download_file_from_link(
-        link, file_name, archive_path, f"Download {file_name}", app_logger
+        link, file_name, archive_path, f"Download {file_name}"
     )
     shutil.unpack_archive(archive_path, save_path, format="zip")
     os.rename(os.path.join(save_path, dataset), os.path.join(save_path, "images"))
     silent_remove(archive_path)
 
 
-def download_coco_annotations(dataset, archive_path, save_path, app_logger):
+def download_coco_annotations(dataset, archive_path, save_path):
     link = None
     file_name = None
     ann_dir = os.path.join(save_path, "annotations")
@@ -51,7 +51,7 @@ def download_coco_annotations(dataset, archive_path, save_path, app_logger):
         link = g.annotations_links["trainval2017"]
         file_name = "trainval2017.zip"
     download_file_from_link(
-        link, file_name, archive_path, f"Download {file_name}", app_logger
+        link, file_name, archive_path, f"Download {file_name}"
     )
     shutil.unpack_archive(archive_path, save_path, format="zip")
     for file in os.listdir(ann_dir):
@@ -60,19 +60,19 @@ def download_coco_annotations(dataset, archive_path, save_path, app_logger):
     silent_remove(archive_path)
 
 
-def download_original_coco_dataset(datasets, app_logger):
+def download_original_coco_dataset(datasets):
     for dataset in datasets:
         dataset_dir = os.path.join(g.COCO_BASE_DIR, dataset)
         mkdir(dataset_dir)
         archive_path = f"{dataset_dir}.zip"
-        download_coco_images(dataset, archive_path, dataset_dir, app_logger)
+        download_coco_images(dataset, archive_path, dataset_dir)
         if not dataset.startswith("test"):
-            download_coco_annotations(dataset, archive_path, dataset_dir, app_logger)
+            download_coco_annotations(dataset, archive_path, dataset_dir)
     return datasets
 
 
 def download_dir_from_supervisely(
-    path_to_remote_dir, dir_path, progress_message, app_logger
+    path_to_remote_dir, dir_path, progress_message
 ):
     dir_size = g.api.file.get_directory_size(g.TEAM_ID, path_to_remote_dir)
     if not dir_exists(dir_path):
@@ -86,11 +86,11 @@ def download_dir_from_supervisely(
             progress_cb=progress_upload_cb
         )
 
-        app_logger.info(f'Directory "{path_to_remote_dir}" has been successfully downloaded')
+        sly.logger.info(f'Directory "{path_to_remote_dir}" has been successfully downloaded')
 
 
 def download_file_from_supervisely(
-    remote_path, archive_path, archive_name, progress_message, app_logger
+    remote_path, archive_path, archive_name, progress_message
 ):
     file_size = g.api.file.get_info_by_path(g.TEAM_ID, remote_path).sizeb
     if not file_exists(archive_path):
@@ -103,12 +103,12 @@ def download_file_from_supervisely(
             archive_path,
             progress_cb=progress_upload_cb,
         )
-        app_logger.info(f'"{archive_name}" has been successfully downloaded')
+        sly.logger.info(f'"{archive_name}" has been successfully downloaded')
 
 
-def download_custom_coco_dataset(remote_path: str, app_logger):
+def download_custom_coco_dataset(remote_path: str):
     if remote_path is None or remote_path == "":
-        sly.logger.warn(f"Incorrect path to the custom dataset: {remote_path}")
+        sly.logger.warning(f"Incorrect path to the custom dataset: {remote_path}")
         return []
 
 
@@ -118,15 +118,15 @@ def download_custom_coco_dataset(remote_path: str, app_logger):
         archive_name = basename(normpath(g.INPUT_FILE))
         archive_path = os.path.join(g.COCO_BASE_DIR, archive_name)
         download_file_from_supervisely(
-            g.INPUT_FILE, archive_path, archive_name, f'Download "{archive_name}"', app_logger
+            g.INPUT_FILE, archive_path, archive_name, f'Download "{archive_name}"'
         )
-        app_logger.info("Unpacking archive...")
+        sly.logger.info("Unpacking archive...")
         sly.fs.unpack_archive(archive_path, g.COCO_BASE_DIR, remove_junk=True)
         silent_remove(archive_path)
         coco_listdir = os.listdir(g.COCO_BASE_DIR)
         assert len(os.listdir(g.COCO_BASE_DIR)) == 1, \
             "ERROR: Archive must contain only 1 project folder with datasets in COCO format."
-        app_logger.info("Archive has been unpacked.")
+        sly.logger.info("Archive has been unpacked.")
         g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, coco_listdir[0])
 
         coco_listdir = os.listdir(g.COCO_BASE_DIR)
@@ -139,23 +139,23 @@ def download_custom_coco_dataset(remote_path: str, app_logger):
             raise FileNotFoundError(f"Directory {g.INPUT_DIR} not found in Team Files")
         dir_name = basename(normpath(g.INPUT_DIR))
         dir_path = os.path.join(g.COCO_BASE_DIR, dir_name)
-        download_dir_from_supervisely(g.INPUT_DIR, dir_path, f'Download "{dir_name}"', app_logger)
+        download_dir_from_supervisely(g.INPUT_DIR, dir_path, f'Download "{dir_name}"')
         g.COCO_BASE_DIR = os.path.join(g.COCO_BASE_DIR, dir_name)
         sly.fs.remove_junk_from_dir(g.COCO_BASE_DIR)
     else:
-        sly.logger.warn(f"No valid data found in the given path: {remote_path}")
+        sly.logger.warning(f"No valid data found in the given path: {remote_path}")
         return []
     return list(os.listdir(g.COCO_BASE_DIR))
 
 
-def start(app_logger):
+def start():
     project_name = g.OUTPUT_PROJECT_NAME
     if g.is_original:
-        coco_datasets = download_original_coco_dataset(g.original_ds, app_logger)
+        coco_datasets = download_original_coco_dataset(g.original_ds)
         if project_name is None or project_name == "":
             project_name = "Original COCO"
     else:
-        coco_datasets = download_custom_coco_dataset(g.custom_ds, app_logger)
+        coco_datasets = download_custom_coco_dataset(g.custom_ds)
         if project_name is None or project_name == "":
             project_name = "Custom COCO"
     return project_name, coco_datasets

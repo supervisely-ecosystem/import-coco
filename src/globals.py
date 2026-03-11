@@ -14,8 +14,7 @@ if sly.is_development():
     load_dotenv("local.env")
     load_dotenv(os.path.expanduser("~/supervisely.env"))
 
-my_app = sly.AppService()
-api: sly.Api = my_app.public_api
+api: sly.Api = sly.Api.from_env()
 workflow = Workflow(api)
 
 
@@ -43,7 +42,8 @@ if SLY_SELECTED_CONTEXT != "ecosystem":
 
 OUTPUT_PROJECT_NAME = os.environ.get("modal.state.projectName", "")
 
-STORAGE_DIR = os.path.join(my_app.data_dir, "storage_dir")
+data_dir = sly.app.get_data_dir()
+STORAGE_DIR = os.path.join(data_dir, "storage_dir")
 mkdir(STORAGE_DIR, True)
 COCO_BASE_DIR = os.path.join(STORAGE_DIR, "coco_base_dir")
 mkdir(COCO_BASE_DIR)
@@ -74,7 +74,7 @@ else:
     if INPUT_DIR:
         listdir = api.file.listdir(TEAM_ID, INPUT_DIR)
         if len(listdir) == 1 and sly.fs.get_file_ext(listdir[0]) in [".zip", ".tar"]:
-            sly.logger.warn("Folder mode is selected, but archive file is uploaded.")
+            sly.logger.warning("Folder mode is selected, but archive file is uploaded.")
             sly.logger.info("Switching to file mode.")
             INPUT_DIR, INPUT_FILE = None, os.path.join(INPUT_DIR, listdir[0])
         elif any(basename(normpath(x)) in ["images", "annotations"] for x in listdir):

@@ -20,10 +20,9 @@ class HiddenCocoPrints:
         sys.stdout = self._original_stdout
 
 
-@g.my_app.callback("import_coco")
 @sly.timeit
-def import_coco(api: sly.Api, task_id, context, state, app_logger):
-    project_name, coco_datasets = coco_downloader.start(app_logger)
+def import_coco(api: sly.Api, task_id):
+    project_name, coco_datasets = coco_downloader.start()
     total_images = 0
     for dataset in coco_datasets:
         current_dataset_images_cnt = 0
@@ -31,16 +30,16 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
         coco_dataset_dir = os.path.join(g.COCO_BASE_DIR, dataset)
         g.src_img_dir = os.path.join(coco_dataset_dir, "images")
         if not dir_exists(coco_dataset_dir):
-            app_logger.info(f"File {coco_dataset_dir} has been skipped.")
+            sly.logger.info(f"File {coco_dataset_dir} has been skipped.")
             continue
         coco_ann_dir = os.path.join(coco_dataset_dir, "annotations")
         if not dir_exists(coco_ann_dir):
             if dir_exists(os.path.join(coco_dataset_dir, "annotation")):
                 coco_ann_dir = os.path.join(coco_dataset_dir, "annotation")
             else:
-                app_logger.warn(f"Not found 'annotations' folder")
+                sly.logger.warning(f"Not found 'annotations' folder")
         if not dir_exists(g.src_img_dir):
-            app_logger.warn("Not found 'images' folder.")
+            sly.logger.warning("Not found 'images' folder.")
             imgs_list = sly.fs.list_files_recursively(
                 coco_dataset_dir, sly.image.SUPPORTED_IMG_EXTS
             )
@@ -49,7 +48,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
                 imgs_dirs = list(set(imgs_dirs))
                 if len(imgs_dirs) == 1:
                     g.src_img_dir = imgs_dirs[0]
-                    app_logger.warn(f"Found images in '{g.src_img_dir}' folder.")
+                    sly.logger.warning(f"Found images in '{g.src_img_dir}' folder.")
                 else:
                     continue
             else:
@@ -57,7 +56,7 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
 
         images = sly.fs.list_files_recursively(g.src_img_dir, sly.image.SUPPORTED_IMG_EXTS)
         if len(images) == 0:
-            app_logger.warn(
+            sly.logger.warning(
                 f"Folder '{g.src_img_dir}' has no images at this level. Read the application overview."
             )
             continue
@@ -134,9 +133,9 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
 
                 ds_progress.iter_done_report()
             if incorrect_anns > 0:
-                app_logger.warn(f"{skipped_images} images skipped because of incorrect annotation.")
+                sly.logger.warning(f"{skipped_images} images skipped because of incorrect annotation.")
             if skipped_images > 0:
-                app_logger.warn(f"{skipped_images} images skipped because of missing files.")
+                sly.logger.warning(f"{skipped_images} images skipped because of missing files.")
         else:
             coco_converter.get_sly_meta_from_coco(coco_categories=[], dataset_name=dataset)
             sly_dataset_dir = coco_converter.create_sly_dataset_dir(dataset_name=dataset)
@@ -165,14 +164,13 @@ def import_coco(api: sly.Api, task_id, context, state, app_logger):
             log_progress=True,
         )
         g.workflow.add_output(project_id)
-    g.my_app.stop()
 
 
 def main():
     sly.logger.info(
         "Script arguments", extra={"TEAM_ID": g.TEAM_ID, "WORKSPACE_ID": g.WORKSPACE_ID}
     )
-    g.my_app.run(initial_events=[{"command": "import_coco"}])
+    import_coco(g.api, g.TASK_ID, None, None)
 
 
 if __name__ == "__main__":
