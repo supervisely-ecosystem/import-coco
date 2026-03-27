@@ -1,7 +1,6 @@
 import ast
 import os
 import shutil
-from distutils.util import strtobool
 from os.path import basename, dirname, normpath
 
 import supervisely as sly
@@ -34,8 +33,8 @@ META = sly.ProjectMeta()
 
 INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
-INCLUDE_CAPTIONS = bool(strtobool(os.getenv("modal.state.captions")))
-CONVERT_RLE_TO_BITMAP = bool(strtobool(os.getenv("modal.state.rleToBitmap")))
+INCLUDE_CAPTIONS = (os.getenv("modal.state.captions")).lower() in ["true", "1", "yes"]
+CONVERT_RLE_TO_BITMAP = (os.getenv("modal.state.rleToBitmap")).lower() in ["true", "1", "yes"]
 
 if SLY_SELECTED_CONTEXT != "ecosystem":
     COCO_MODE = "custom"
