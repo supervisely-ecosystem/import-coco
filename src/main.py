@@ -170,7 +170,7 @@ def main():
     sly.logger.info(
         "Script arguments", extra={"TEAM_ID": g.TEAM_ID, "WORKSPACE_ID": g.WORKSPACE_ID}
     )
-    import_coco(g.api, g.TASK_ID, None, None)
+    import_coco(g.api, g.TASK_ID)
 
 
 if __name__ == "__main__":
