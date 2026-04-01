@@ -14,7 +14,8 @@
     "isDragMode": "Drag & drop",
     "files": "",
     "captions": false,
-    "rleToBitmap": false
+    "rleToBitmap": false,
+    "scoreToConfidence": false
   },
   "context_menu": {
     "target": ["ecosystem", "files_folder", "files_file"]

@@ -54,13 +54,20 @@ def get_ann_types(coco: COCO) -> List[str]:
         ann_types.append("segmentation")
     if any("caption" in coco.anns[ann_id] for ann_id in annotation_ids):
         ann_types.append("caption")
+    if any("score" in coco.anns[ann_id] for ann_id in annotation_ids):
+        ann_types.append("score")
 
     return ann_types
+
+
+def get_score_tag_name():
+    return "confidence" if g.SCORE_TO_CONFIDENCE else "score"
 
 
 def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
     colors = []
     tag_metas = []
+    existing_tag_meta_names = [tag_meta.name for tag_meta in g.META.tag_metas]
     for category in coco_categories:
         if category["name"] in [obj_class.name for obj_class in g.META.obj_classes]:
             continue
@@ -78,10 +85,26 @@ def create_sly_meta_from_coco_categories(coco_categories, ann_types=None):
                 )
 
         g.META = g.META.add_obj_classes(obj_classes)
-    if ann_types is not None and "caption" in ann_types:
+    if ann_types is not None and "caption" in ann_types and "caption" not in existing_tag_meta_names:
         tag_metas.append(sly.TagMeta("caption", sly.TagValueType.ANY_STRING))
+    if ann_types is not None and "score" in ann_types:
+        score_tag_name = get_score_tag_name()
+        if score_tag_name not in existing_tag_meta_names:
+            tag_metas.append(sly.TagMeta(score_tag_name, sly.TagValueType.ANY_NUMBER))
     g.META = g.META.add_tag_metas(tag_metas)
     return g.META
+
+
+def get_label_tags(meta: sly.ProjectMeta, coco_object):
+    label_tags = []
+
+    score = coco_object.get("score")
+    if score is not None:
+        score_tag_meta = meta.get_tag_meta(get_score_tag_name())
+        if score_tag_meta is not None:
+            label_tags.append(sly.Tag(score_tag_meta, score))
+
+    return label_tags
 
 
 def get_sly_meta_from_coco(coco_categories, dataset_name, ann_types=None):
@@ -207,6 +230,7 @@ def create_sly_ann_from_coco_annotation(
         segm = object.get("segmentation")
         bbox = object.get("bbox")
         curr_labels = []
+        label_tags = get_label_tags(meta, object)
         key = uuid.uuid4().hex if segm and bbox else None
         if segm is not None and len(segm) > 0:
             obj_class_polygon = meta.get_obj_class(obj_class_name)
@@ -233,17 +257,20 @@ def create_sly_ann_from_coco_annotation(
                             obj_class_name_rle, obj_class_bitmap, sly.Bitmap.geometry_name()
                         )
                         continue
-                    label = sly.Label(mask, obj_class_bitmap, binding_key=key)
+                    label = sly.Label(mask, obj_class_bitmap, tags=label_tags, binding_key=key)
                     curr_labels.append(label)
                 else:
                     for polygon in polygons:
                         figure = polygon
-                        label = sly.Label(figure, obj_class_polygon, binding_key=key)
+                        label = sly.Label(figure, obj_class_polygon, tags=label_tags, binding_key=key)
                         curr_labels.append(label)
             elif type(segm) is list and object["segmentation"]:
                 figures = convert_polygon_vertices(object, image_size)
                 curr_labels.extend(
-                    [sly.Label(figure, obj_class_polygon, binding_key=key) for figure in figures]
+                    [
+                        sly.Label(figure, obj_class_polygon, tags=label_tags, binding_key=key)
+                        for figure in figures
+                    ]
                 )
 
         if bbox is not None and len(bbox) == 4:
@@ -252,7 +279,7 @@ def create_sly_ann_from_coco_annotation(
             obj_class_rectangle = meta.get_obj_class(obj_class_name)
             x, y, w, h = bbox
             rect = sly.Rectangle(y, x, y + h, x + w)
-            labels.append(sly.Label(rect, obj_class_rectangle, binding_key=key))
+            labels.append(sly.Label(rect, obj_class_rectangle, tags=label_tags, binding_key=key))
         labels.extend(curr_labels)
 
         caption = object.get("caption")

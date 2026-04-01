@@ -35,6 +35,11 @@ INPUT_DIR = os.environ.get("modal.state.slyFolder")
 INPUT_FILE = os.environ.get("modal.state.slyFile")
 INCLUDE_CAPTIONS = (os.getenv("modal.state.captions")).lower() in ["true", "1", "yes"]
 CONVERT_RLE_TO_BITMAP = (os.getenv("modal.state.rleToBitmap")).lower() in ["true", "1", "yes"]
+SCORE_TO_CONFIDENCE = os.getenv("modal.state.scoreToConfidence", "false").lower() in [
+    "true",
+    "1",
+    "yes",
+]
 
 if SLY_SELECTED_CONTEXT != "ecosystem":
     COCO_MODE = "custom"
