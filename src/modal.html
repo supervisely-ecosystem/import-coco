@@ -110,5 +110,13 @@
             <br>
         </sly-field>
     </div>
+    <div class="fflex align-start">
+        <sly-field
+            title="Rename score tag"
+            description="Specify whether imported COCO score tags should be renamed to confidence.">
+            <el-checkbox v-model="state.scoreToConfidence">rename "score" to "confidence"</el-checkbox>
+            <br>
+        </sly-field>
+    </div>
 </div>
 
