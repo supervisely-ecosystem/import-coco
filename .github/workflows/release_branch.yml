@@ -69,6 +69,8 @@ jobs:
     with:
       tag_version: "test"
       skip_tag_check: true
+      # dev_requirements.txt pins the SDK to a commit, so the runtime base tag cannot be resolved from it
+      tag_ref_name: "6.73.552"
 
   Supervisely-Release-Branch:
     needs:

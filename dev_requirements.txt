@@ -1,2 +1,4 @@
-# supervisely==6.73.162
+# TEST BRANCH: SDK fixes from supervisely/supervisely#1825, pinned by commit (a branch name with '/'
+# makes setup.py build an invalid version). Back to a release pin before merging.
+supervisely @ git+https://github.com/supervisely/supervisely.git@ccc640a59be4f7d056002190e085d7b04f4c38fe
 pycocotools==2.0.11
