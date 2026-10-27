@@ -1,3 +1,4 @@
+# test image tag test-d65a8bc (see .github/workflows/release_branch.yml)
 # TEST BRANCH: SDK fixes from supervisely/supervisely#1825, pinned by commit (a branch name with '/'
 # makes setup.py build an invalid version). Back to a release pin before merging.
 supervisely @ git+https://github.com/supervisely/supervisely.git@d65a8bc2eb5f3e93c110dfedd09f79bb2c103e6c
