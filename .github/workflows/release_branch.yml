@@ -67,7 +67,8 @@ jobs:
     if: ${{ needs.Check-Dev-Requirements.outputs.enabled == 'true' && needs.Check-Dev-Requirements.outputs.changed == 'true' }}
     uses: supervisely-ecosystem/workflows/.github/workflows/build_image_from_template.yml@master
     with:
-      tag_version: "test"
+      # one tag per SDK pin: agents pull "if not present", so a rebuilt tag would never reach them
+      tag_version: "test-d65a8bc"
       skip_tag_check: true
       # dev_requirements.txt pins the SDK to a commit, so the runtime base tag cannot be resolved from it
       tag_ref_name: "6.73.552"
